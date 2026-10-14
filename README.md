@@ -2,7 +2,7 @@
 
 **An AI model that predicts college football games, and every team's chance to win the national title.**
 
-For every game it answers three questions: *Who wins? By how much? How sure are we?*
+For every game it answers three questions: *Who wins? By how much? How sure is the model?*
 Then it plays out the rest of the season 10,000 times to estimate who will lift the trophy in January.
 
 > **Short version:** I tested 16 different prediction methods on 12 full seasons they had never
@@ -21,7 +21,7 @@ Then it plays out the rest of the season 10,000 times to estimate who will lift 
 6. [Results](#6-results)
 7. [Why this algorithm won](#7-why-this-algorithm-won)
 8. [Predicting the champion](#8-predicting-the-champion)
-9. [How we keep the model honest](#9-how-we-keep-the-model-honest)
+9. [How I keep the model honest](#9-how-i-keep-the-model-honest)
 10. [Limits: what it can't do](#10-limits-what-it-cant-do)
 11. [Run it yourself](#11-run-it-yourself)
 12. [Project map](#12-project-map)
@@ -75,15 +75,15 @@ republishes data from CollegeFootballData.com, ESPN and 247Sports.
 
 - **362 files, 2001-2026**: every game, scores, rankings, recruiting, returning players,
   transfers, betting lines and more.
-- Every file gets a **receipt** (`data/raw/_manifest.json`) with a fingerprint (sha256), so we can
+- Every file gets a **receipt** (`data/raw/_manifest.json`) with a fingerprint (sha256), so I can
   prove the data was never changed by accident.
 - A **data audit** checks the data before any model trains. For example: all 22 real national
-  champions from 2004 to 2025 must match our data. They do.
+  champions from 2004 to 2025 must match my data. They do.
 
-Problems we found and fixed (each became a rule in `vault/07 Lessons/`):
+Problems I found and fixed (each became a rule in `vault/07 Lessons/`):
 - The main schedule file was missing bowl and playoff games before 2023, so ESPN's schedules fill them in.
 - About a third of 2006-2012 ESPN betting lines had the wrong sign (favorites "won" only 27%).
-  We built our own consensus line from many sportsbooks instead.
+  I built my own consensus line from many sportsbooks instead.
 - 33 games scored "0-0" were really cancelled games.
 
 ## 4. The 40 clues the model uses
@@ -98,21 +98,21 @@ Every clue is something you could know **the morning of the game**. Most are wri
 | **This season's form** (12) | Games played, win %, season averages (scoring margin, success rate, big plays, havoc, turnovers, yards per play, win expectancy), last 3 games, rest days, AP rank | How the season is going. Early-season numbers are pulled toward average so one game can't fool the model |
 | **Game setting** (6) | Home field, conference game, bowl, playoff, week of season, travel distance | Where and when the game is played |
 
-**What we deliberately do NOT use:**
+**What I deliberately do NOT use:**
 - **The final score or stats of the game being predicted.** That's the answer key. Using it is cheating (see section 9).
-- **Vegas betting lines.** We only use them as a yardstick. The title forecast needs games weeks ahead, before lines exist, and we want our own model, not a copy of Vegas.
+- **Vegas betting lines.** I only use them as a yardstick. The title forecast needs games weeks ahead, before lines exist, and I want my own model, not a copy of Vegas.
 - **ESPN's FPI and "weekly" computer ratings.** Those files were rebuilt after each season, so early weeks secretly know later results.
-- **Injuries and quarterback news.** No reliable free history exists. This is the biggest reason we trail Vegas.
+- **Injuries and quarterback news.** No reliable free history exists. This is the biggest reason the model trails Vegas.
 
 Full list with reasons: [`vault/03 Features/Feature Catalog.md`](vault/03%20Features/Feature%20Catalog.md)
 
 ## 5. The big test: 16 methods, one exam
 
-Different sports reward different methods, so we didn't guess. We ran a fair contest.
+Different sports reward different methods, so I didn't guess. I ran a fair contest.
 
 **The rules (written down before seeing any results):**
 - **Time travel, never shuffling.** To predict 2018, a method may only learn from 2005-2017.
-  We repeat this for every season from 2014 to 2025: 12 seasons, 10,371 games. This copies real
+  I repeat this for every season from 2014 to 2025: 12 seasons, 10,371 games. This copies real
   life: you only ever know the past.
 - **Settings tuned on 2010-2013 only**, so the exam seasons stay untouched.
 - **Main score: log loss.** It rewards honest confidence and punishes being confidently wrong.
@@ -128,7 +128,7 @@ Different sports reward different methods, so we didn't guess. We ran a fair con
 | Tree methods | Margin LightGBM, LightGBM, XGBoost, histogram gradient boosting, random forest |
 | Others | Neural network (MLP), support vector machine, k-nearest neighbors, Naive Bayes |
 | Team effort | Ensemble (average of the top 3) |
-| Simple baselines | "Home team always wins", our Elo rating, CFBD's public Elo |
+| Simple baselines | "Home team always wins", my Elo rating, CFBD's public Elo |
 | Yardstick (not a contestant) | The Vegas closing line |
 
 ## 6. Results
@@ -141,18 +141,18 @@ Different sports reward different methods, so we didn't guess. We ran a fair con
 | Logistic regression | 0.4829 | 75.7% | 82.7% | 64.0% | 90.7% |
 | Neural network | 0.4830 | 75.8% | 82.7% | 64.4% | 90.4% |
 | Random forest | 0.4877 | 75.6% | 82.6% | 64.2% | 91.3% |
-| Our Elo | 0.5126 | 73.8% | 81.8% | 60.5% | 89.4% |
+| My Elo | 0.5126 | 73.8% | 81.8% | 60.5% | 89.4% |
 | Home team always | 0.6614 | 62.3% | 100% | 0% | n/a |
 | *(coin flip)* | *0.693* | *50%* | | | |
 
 **What the numbers mean:**
 - **Picks right (accuracy) 75.7%:** about 3 out of 4 winners.
-- **Recall:** of all the games the home team really won, we called 83.2%. Away wins are harder
+- **Recall:** of all the games the home team really won, the model called 83.2%. Away wins are harder
   (63.3%) because away teams are usually underdogs.
 - **Confidence you can trust:** the "calibration error" is 1.3 percentage points. When the model
   says 70%, teams win about 70%.
-- **Versus Vegas:** we're 0.012 log loss behind (a real but small gap). Vegas knows about injuries and
-  quarterback changes; we don't.
+- **Versus Vegas:** the model is 0.012 log loss behind (a real but small gap). Vegas knows about injuries and
+  quarterback changes; my model doesn't.
 - **Hardest games:** bowls and playoff games are close to coin flips for every method, because star players often skip bowls.
 
 Full scoreboard: [`vault/04 Models/Algorithm Comparison.md`](vault/04%20Models/Algorithm%20Comparison.md) ·
@@ -188,7 +188,7 @@ What each clue group adds (removing groups one at a time):
 ## 8. Predicting the champion
 
 **How:** play every remaining game 10,000 times. In each simulated season:
-1. Each team's strength is nudged up or down a little (we're never 100% sure how good a team is).
+1. Each team's strength is nudged up or down a little (no one is ever 100% sure how good a team is).
 2. Conference title games are set from the simulated standings.
 3. A **committee stand-in** ranks the teams. It learned from the real playoff rankings
    2014-2025 and matched 3.6 of the real top 4 and 11.1 of the real top 12 on average, in seasons it never saw.
@@ -212,7 +212,7 @@ champion was the model's favorite in 7 of 12 years and in its top 2 in 10 of 12.
 No team is above 50%: with 12 teams, even the best one usually has to win 3 or 4 playoff games.
 Read these as **chances, not promises.**
 
-## 9. How we keep the model honest
+## 9. How I keep the model honest
 
 - **No peeking (data leakage tests).** `tests/test_no_leakage.py` hides every result from a given
   week and checks that the clues for that week don't change. If a clue changed, it was secretly
@@ -285,8 +285,8 @@ vault/        Obsidian notes: decisions, experiments, lessons, glossary
 | **Walk-forward test** | Testing season by season, only ever learning from the past |
 | **Data leakage** | When a model accidentally sees the answer. Makes test scores look great and real predictions bad |
 | **Log loss** | The main score. Punishes being confidently wrong. Lower is better; a coin flip is 0.693 |
-| **Accuracy** | Share of games where our pick won |
-| **Recall** | Of the games a side really won, the share we called |
+| **Accuracy** | Share of games where the model's pick won |
+| **Recall** | Of the games a side really won, the share the model called |
 | **Calibration** | Whether the percentages are honest (70% means 70%) |
 | **Elo** | A chess-style rating: beat a strong team, gain a lot |
 | **Opponent-adjusted** | Beating a top-10 team by 7 counts more than beating a weak team by 30 |
