@@ -1,0 +1,9 @@
+{
+ "d": 0.0,
+ "log_loss_change_1to5_weeks_ahead": 0.0,
+ "ci_low": null,
+ "ci_high": null,
+ "p_value": null,
+ "games": 29946,
+ "significantly_better": false
+}

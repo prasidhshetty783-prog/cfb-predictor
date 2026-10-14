@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+
+# Claude Code hook state (per machine)
+.claude/state/
+.claude/settings.local.json
+
+# Obsidian per-user layout
+vault/.obsidian/workspace*.json
+vault/.obsidian/cache
+
+# Dated project snapshots
+backups/
+
+# Large raw downloads (re-create with: python -m cfb.pipeline --download)
+data/raw/

@@ -1,0 +1,13 @@
+{
+ "weights_standardized": {
+  "wins": 3.613,
+  "losses": -3.157,
+  "rating": 2.072,
+  "sos": 2.018,
+  "conf_champ": -0.037,
+  "is_power": 1.185
+ },
+ "avg_top4_overlap": 3.5833333333333335,
+ "avg_top12_overlap": 11.083333333333334,
+ "avg_spearman_top25": 0.9323717948717949
+}

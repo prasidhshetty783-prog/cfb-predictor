@@ -1,0 +1,14 @@
+{
+ "current (40 clues)": {
+  "alpha": 1000.0
+ },
+ "+ luck (#1)": {
+  "alpha": 1000.0
+ },
+ "+ position talent (#2)": {
+  "alpha": 1000.0
+ },
+ "+ both": {
+  "alpha": 1000.0
+ }
+}

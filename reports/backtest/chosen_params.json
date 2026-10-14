@@ -1,0 +1,51 @@
+{
+ "home_field": {},
+ "elo": {},
+ "cfbd_elo": {},
+ "vegas_spread": {},
+ "logistic_regression": {
+  "C": 0.003
+ },
+ "logistic_lasso": {
+  "C": 0.02
+ },
+ "naive_bayes": {
+  "vs": 1e-09
+ },
+ "knn": {
+  "k": 200
+ },
+ "margin_ridge": {
+  "alpha": 1000.0
+ },
+ "lightgbm": {
+  "lr": 0.02,
+  "leaves": 7
+ },
+ "margin_lightgbm": {
+  "lr": 0.02,
+  "leaves": 15
+ },
+ "xgboost": {
+  "lr": 0.02,
+  "depth": 3
+ },
+ "hist_gradient_boosting": {
+  "lr": 0.03,
+  "depth": 5
+ },
+ "random_forest": {
+  "depth": 12,
+  "leaf": 25
+ },
+ "neural_net_mlp": {
+  "layers": [
+   32
+  ],
+  "alpha": 1.0
+ },
+ "svm_rbf": {
+  "gamma": 0.005,
+  "C": 0.1
+ }
+}

@@ -1,0 +1,3 @@
+week,model,games,picks_right,accuracy,log_loss,avg_confidence,sure_games,sure_right
+season,current,0,0,,,,0,
+season,challenger,0,0,,,,0,

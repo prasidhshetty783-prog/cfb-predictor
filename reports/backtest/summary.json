@@ -1,0 +1,11 @@
+{
+ "leader": "margin_lightgbm",
+ "ensemble_members": [
+  "neural_net_mlp",
+  "logistic_regression",
+  "lightgbm"
+ ],
+ "n_test_games": 10371,
+ "n_bootstrap": 2000,
+ "bootstrap_unit": "game-week (season x week)"
+}

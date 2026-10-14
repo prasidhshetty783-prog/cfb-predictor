@@ -1,0 +1,106 @@
+{
+ "elo_tuning_top5": [
+  {
+   "k": 35,
+   "hfa": 55,
+   "revert": 0.15,
+   "log_loss": 0.500836538591591
+  },
+  {
+   "k": 35,
+   "hfa": 55,
+   "revert": 0.2,
+   "log_loss": 0.5009515905904048
+  },
+  {
+   "k": 35,
+   "hfa": 65,
+   "revert": 0.15,
+   "log_loss": 0.501061302527336
+  },
+  {
+   "k": 40,
+   "hfa": 55,
+   "revert": 0.2,
+   "log_loss": 0.501126247391344
+  },
+  {
+   "k": 35,
+   "hfa": 65,
+   "revert": 0.2,
+   "log_loss": 0.5011477414593152
+  }
+ ],
+ "elo_params": {
+  "k": 35.0,
+  "hfa": 55.0,
+  "revert": 0.15,
+  "mov": true
+ },
+ "ridge_params": {
+  "pts_target": {
+   "lam": 1.0,
+   "prev_weight": 0.35,
+   "cap": 35.0
+  },
+  "sr_target": {
+   "lam": 1.0,
+   "prev_weight": 0.35,
+   "cap": null
+  },
+  "ypp_target": {
+   "lam": 1.0,
+   "prev_weight": 0.35,
+   "cap": 5.0
+  },
+  "pw_target": {
+   "lam": 1.0,
+   "prev_weight": 0.35,
+   "cap": null
+  }
+ },
+ "_elo_hfa": 55.0,
+ "n_rows": 19212,
+ "features": [
+  "d_elo",
+  "d_r_pts",
+  "d_r_sr",
+  "d_r_ypp",
+  "d_r_pw",
+  "d_talent",
+  "d_blue_chip",
+  "d_ret_off",
+  "d_ret_def",
+  "d_portal_net",
+  "d_prev_adj_net",
+  "d_is_power",
+  "d_is_fbs",
+  "d_gp",
+  "d_win_pct",
+  "d_s_margin",
+  "d_s_sr",
+  "d_s_expl",
+  "d_s_havoc",
+  "d_s_to",
+  "d_s_ypp",
+  "d_s_pw",
+  "d_last3_margin",
+  "d_rest",
+  "d_ap_rank",
+  "hf",
+  "conference_game",
+  "postseason",
+  "playoff",
+  "week_order",
+  "travel_km",
+  "pred_pts",
+  "pred_sr",
+  "pred_ypp",
+  "pred_pw",
+  "elo_logit",
+  "home_talent",
+  "away_talent",
+  "home_is_power",
+  "away_is_power"
+ ]
+}

@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>CFB Predictor Bake-off</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column like a game-day program: scoreboard header, verdict, film-room charts, title odds, method. */
+:root {
+  --bg: #f5f6f2; --surface: #fcfcfb; --ink: #0e1210; --ink-2: #4b524e; --muted: #7d837d;
+  --grid: #e2e4dd; --axis: #c3c6bc; --accent: #1d6b40; --accent-wash: #e3efe6;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --deemph: #b8bcb3; --win: #006300; --loss: #b4322f;
+  --ring: rgba(14,18,16,.10);
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d0f0e; --surface: #151816; --ink: #eef0ec; --ink-2: #b8beb8; --muted: #8b918b;
+  --grid: #272b28; --axis: #3a3f3b; --accent: #5fc08a; --accent-wash: #16261c;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --deemph: #4b504c; --win: #0ca30c; --loss: #e66767;
+  --ring: rgba(255,255,255,.10); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0d0f0e; --surface: #151816; --ink: #eef0ec; --ink-2: #b8beb8; --muted: #8b918b;
+  --grid: #272b28; --axis: #3a3f3b; --accent: #5fc08a; --accent-wash: #16261c;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --deemph: #4b504c; --win: #0ca30c; --loss: #e66767;
+  --ring: rgba(255,255,255,.10); color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55; }
+.page { max-width: 1040px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; letter-spacing: .01em; margin: 0; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); line-height: 1.02; font-weight: 700; }
+h2 { font-size: clamp(1.55rem, 3.6vw, 2.1rem); line-height: 1.1; font-weight: 600; }
+h3 { font-size: 1.25rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-family: var(--font-data); font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.num { font-variant-numeric: tabular-nums; }
+code { font-family: var(--font-data); font-size: .85em; }
+a { color: var(--accent); }
+a:focus-visible, [tabindex]:focus-visible, summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; border-radius: 4px; }
+header.top { display: grid; gap: 14px; padding-bottom: 22px; border-bottom: 1px solid var(--grid); }
+.lede { font-size: 1.12rem; color: var(--ink-2); }
+.meta { font-family: var(--font-data); font-size: .78rem; color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 8px; }
+.kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; display: grid; gap: 2px; }
+.kpi .label { font-size: .86rem; color: var(--ink-2); }
+.kpi .value { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+.kpi .sub { font-size: .8rem; color: var(--muted); }
+section { display: grid; gap: 14px; padding-block: 34px 6px; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 18px; display: grid; gap: 12px; min-width: 0; }
+.two { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.verdict { background: var(--accent-wash); border-radius: 12px; padding: 18px 20px; display: grid; gap: 8px; }
+.verdict strong { font-weight: 700; }
+.note { font-size: .9rem; color: var(--ink-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .86rem; color: var(--ink-2); }
+.key { display: inline-flex; align-items: center; gap: 6px; }
+.swatch-line { width: 16px; height: 2px; border-radius: 2px; background: currentColor; }
+.swatch-dot { width: 9px; height: 9px; border-radius: 50%; }
+.swatch-tick { width: 14px; height: 2px; background: var(--muted); }
+.swatch-line.s1, .swatch-dot.s1 { background: var(--s1); } .swatch-line.s2, .swatch-dot.s2 { background: var(--s2); }
+.swatch-line.s3, .swatch-dot.s3 { background: var(--s3); }
+.svg-wrap { overflow-x: auto; } .svg-wrap svg { min-width: 540px; } .svg-wrap.sq svg { min-width: 300px; max-width: 460px; }
+svg.chart { width: 100%; height: auto; display: block; font-family: var(--font-body); }
+svg .grid { stroke: var(--grid); stroke-width: 1; } svg .axis { stroke: var(--axis); stroke-width: 1; }
+svg .tick { fill: var(--muted); font-size: 12px; } svg .tick.small { font-size: 10.5px; }
+svg .end-label { fill: var(--ink-2); font-size: 12.5px; dominant-baseline: middle; }
+svg .leader { stroke: var(--axis); stroke-width: 1; }
+svg .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg .line.s1 { stroke: var(--s1); } svg .line.s2 { stroke: var(--s2); } svg .line.s3 { stroke: var(--s3); }
+svg .dot { stroke: var(--surface); stroke-width: 2; }
+svg .dot.s1 { fill: var(--s1); } svg .dot.s2 { fill: var(--s2); } svg .dot.s3 { fill: var(--s3); }
+svg .diag { stroke: var(--axis); stroke-width: 1.5; } svg .uni { stroke: var(--muted); stroke-width: 2; }
+svg .stem { stroke: var(--axis); stroke-width: 1.5; }
+svg .hit { fill: transparent; cursor: crosshair; } svg .hit-c { fill: transparent; }
+svg .crosshair { stroke: var(--ink-2); stroke-width: 1; pointer-events: none; }
+svg .pt:hover .dot, svg .pt:focus .dot { r: 6; }
+.dw { display: grid; gap: 4px; font-size: .9rem; }
+.dw-row, .dw-axis { display: grid; grid-template-columns: minmax(118px, 190px) minmax(0, 1fr) 58px; gap: 10px; align-items: center; }
+.dw-row { padding: 3px 4px; border-radius: 6px; } .dw-row:hover, .dw-row:focus { background: var(--accent-wash); }
+.dw-name { color: var(--ink-2); line-height: 1.2; } .dw-row.is-win .dw-name { color: var(--ink); font-weight: 700; }
+.dw-track, .dw-ticks { position: relative; height: 20px; }
+.dw-track::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 1.5px solid var(--axis); }
+.dw-ci { position: absolute; top: 9px; height: 2px; background: var(--deemph); border-radius: 2px; }
+.dw-dot { position: absolute; top: 5px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--deemph); box-shadow: 0 0 0 2px var(--surface); }
+.dw-row.is-win .dw-dot { background: var(--s1); } .dw-row.is-win .dw-ci { background: var(--s1); opacity: .55; }
+.dw-val { text-align: right; color: var(--ink-2); }
+.dw-tick { position: absolute; top: 0; transform: translateX(-50%); font-size: .72rem; color: var(--muted); font-family: var(--font-data); white-space: nowrap; }
+.bars { display: grid; gap: 6px; font-size: .92rem; }
+.bar-row { display: grid; grid-template-columns: minmax(110px, 230px) minmax(0, 1fr); gap: 10px; align-items: center; padding: 2px 4px; border-radius: 6px; }
+.bar-row:hover, .bar-row:focus { background: var(--accent-wash); }
+.bar-name { color: var(--ink-2); line-height: 1.2; } .bar-row.is-win .bar-name { color: var(--ink); font-weight: 700; }
+.bar-track { position: relative; height: 22px; margin-right: 64px; }
+.bar { position: absolute; left: 0; top: 3px; height: 16px; background: var(--s1); border-radius: 0 4px 4px 0; }
+.bar-val { position: absolute; top: 1px; padding-left: 8px; font-size: .85rem; color: var(--ink); white-space: nowrap; }
+details.tv { font-size: .88rem; } details.tv summary { cursor: pointer; color: var(--ink-2); width: fit-content; }
+.tbl-wrap { overflow-x: auto; margin-top: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+td.wrap { white-space: normal; }
+.dw-tick:first-child { transform: none; }
+th { color: var(--ink-2); font-weight: 600; } td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.stats4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .stats4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.swatch-line.diag-key { background: var(--axis); }
+ul.clean li .coef { font-weight: 700; margin-left: 4px; } code.muted { color: var(--muted); font-size: .76rem; margin-left: 4px; }
+@media (max-width: 560px) {
+  .dw-row { grid-template-columns: minmax(0, 1fr) 52px; grid-template-areas: "name val" "track track"; row-gap: 0; }
+  .dw-row .dw-name { grid-area: name; } .dw-row .dw-val { grid-area: val; } .dw-row .dw-track { grid-area: track; }
+  .dw-axis { grid-template-columns: minmax(0, 1fr); } .dw-axis > span:first-child, .dw-axis > span:last-child { display: none; }
+  .dw-tick.minor { display: none; }
+  .bar-row { grid-template-columns: minmax(80px, 110px) minmax(0, 1fr); } .bar-track { margin-right: 92px; }
+  .hide-sm { display: none; }
+  th, td { padding: 6px 5px; }
+}
+.stat { border-left: 3px solid var(--s1); padding: 2px 0 2px 12px; display: grid; }
+.stat .v { font-size: 1.6rem; font-weight: 700; } .stat .l { font-size: .86rem; color: var(--ink-2); }
+.pill { font-size: .78rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--ring); }
+.pill-w { color: var(--win); } .pill-l { color: var(--loss); }
+ul.clean { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+dl.gloss { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr); gap: 8px 16px; margin: 0; }
+dl.gloss dt { font-weight: 700; } dl.gloss dd { margin: 0; color: var(--ink-2); }
+@media (max-width: 520px) { dl.gloss { grid-template-columns: minmax(0, 1fr); } dl.gloss dd { margin-bottom: 6px; } }
+#tip { position: fixed; z-index: 10; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--ring);
+  box-shadow: 0 6px 20px rgba(0,0,0,.16); border-radius: 8px; padding: 8px 10px; font-size: .82rem; max-width: 280px; white-space: pre-line; }
+#tip .lead { font-weight: 700; }
+footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--grid); font-size: .82rem; color: var(--muted); display: grid; gap: 6px; }
+@media (prefers-reduced-motion: no-preference) { .bar { transition: width .4s ease; } }
+</style>
+
+</head>
+<body>
+<div class="page">
+<header class="top">
+  <span class="eyebrow">CFB Predictor · Model bake-off · Test seasons 2014–2025</span>
+  <h1>16 algorithms took the same exam. A simple one passed best.</h1>
+  <p class="lede">Every algorithm studied only the past, then predicted a season it had never seen, twelve times in a row.
+  The winner predicts the final point margin, then turns it into a win chance.</p>
+  <span class="meta">Built Oct 14, 2026 · Data through Oct 10, 2026 (2026 week 6) · 10,371 test games</span>
+  <div class="kpis">
+    <div class="kpi"><span class="label">Picked the winner</span><span class="value">75.7%</span><span class="sub">of 10,371 games, 2014–2025</span></div>
+    <div class="kpi"><span class="label">Right when 80%+ sure</span><span class="value">91.7%</span><span class="sub">39% of games</span></div>
+    <div class="kpi"><span class="label">Calibration error</span><span class="value">1.3 pts</span><span class="sub">"70%" really means ≈70%</span></div>
+    <div class="kpi"><span class="label">Behind Vegas</span><span class="value">+0.012</span><span class="sub">log loss; Vegas still leads</span></div>
+  </div>
+</header>
+
+<section aria-labelledby="verdict">
+  <div class="verdict">
+    <span class="eyebrow">The verdict</span>
+    <h2 id="verdict">Winner: margin ridge, a straight-line point-spread model</h2>
+    <p>Six algorithms finished in a statistical tie at the top. The highest scorer, margin LightGBM, was not significantly better
+    than the simpler linear models (Holm-adjusted p = 0.74). Our rule, written down
+    <em>before</em> the test, says to pick the simplest model in a tie. So the winner is <strong>margin ridge</strong>: it predicts
+    "Team A by 6.5" from about 40 pregame clues, then a bell curve turns that into a win chance. It is easy to explain,
+    fast, and gives both a point spread and a percentage.</p>
+    <p class="note">It beats our own Elo rating in 11 of 12 seasons and trails the Vegas closing line by about 0.012 log loss
+    (Vegas knows about injuries, quarterbacks and weather; we don't use them). Its average miss on the final margin is
+    12.9 points, against 12.4 for Vegas.</p>
+  </div>
+</section>
+
+<section aria-labelledby="h-gap">
+  <span class="eyebrow">Leaderboard</span>
+  <h2 id="h-gap">How far behind Vegas is each algorithm?</h2>
+  <p>Same 10,213 games for everyone (every test game with a betting line). The dot is the gap in log loss;
+  the line through it is the 95% range from 2,000 bootstrap re-runs. Further left is better; 0 would mean tied with Vegas.</p>
+  <div class="card"><div class="dw" role="img" aria-label="Distance behind the Vegas line, per algorithm">
+      <div class="dw-axis"><span></span><span class="dw-ticks"><span class="dw-tick" style="left:0.00%">Vegas</span><span class="dw-tick minor" style="left:11.11%">+0.01</span><span class="dw-tick minor" style="left:22.22%">+0.02</span><span class="dw-tick minor" style="left:33.33%">+0.03</span><span class="dw-tick" style="left:44.44%">+0.04</span><span class="dw-tick minor" style="left:55.56%">+0.05</span><span class="dw-tick minor" style="left:66.67%">+0.06</span><span class="dw-tick minor" style="left:77.78%">+0.07</span><span class="dw-tick" style="left:88.89%">+0.08</span><span class="dw-tick minor" style="left:100.00%">+0.09</span></span><span></span></div>
+      
+      <div class="dw-row " tabindex="0" data-tip="Margin LightGBM
+Behind Vegas: +0.0109 log loss
+95% CI: +0.0067 to +0.0148
+Accuracy on these games: 76.0%">
+        <span class="dw-name">Margin LightGBM</span>
+        <span class="dw-track"><span class="dw-ci" style="left:7.49%;width:8.92%"></span><span class="dw-dot" style="left:12.08%"></span></span>
+        <span class="dw-val num">+0.011</span>
+      </div>
+      <div class="dw-row is-win" tabindex="0" data-tip="Margin ridge (winner)
+Behind Vegas: +0.0117 log loss
+95% CI: +0.0079 to +0.0152
+Accuracy on these games: 75.8%">
+        <span class="dw-name">Margin ridge (winner)</span>
+        <span class="dw-track"><span class="dw-ci" style="left:8.81%;width:8.04%"></span><span class="dw-dot" style="left:12.96%"></span></span>
+        <span class="dw-val num">+0.012</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Ensemble (top 3)
+Behind Vegas: +0.0117 log loss
+95% CI: +0.0079 to +0.0152
+Accuracy on these games: 75.7%">
+        <span class="dw-name">Ensemble (top 3)</span>
+        <span class="dw-track"><span class="dw-ci" style="left:8.83%;width:8.04%"></span><span class="dw-dot" style="left:12.99%"></span></span>
+        <span class="dw-val num">+0.012</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Logistic lasso
+Behind Vegas: +0.0121 log loss
+95% CI: +0.0083 to +0.0156
+Accuracy on these games: 75.6%">
+        <span class="dw-name">Logistic lasso</span>
+        <span class="dw-track"><span class="dw-ci" style="left:9.20%;width:8.16%"></span><span class="dw-dot" style="left:13.44%"></span></span>
+        <span class="dw-val num">+0.012</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Logistic regression
+Behind Vegas: +0.0122 log loss
+95% CI: +0.0083 to +0.0159
+Accuracy on these games: 75.8%">
+        <span class="dw-name">Logistic regression</span>
+        <span class="dw-track"><span class="dw-ci" style="left:9.25%;width:8.38%"></span><span class="dw-dot" style="left:13.61%"></span></span>
+        <span class="dw-val num">+0.012</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Neural net (MLP)
+Behind Vegas: +0.0124 log loss
+95% CI: +0.0088 to +0.0157
+Accuracy on these games: 75.9%">
+        <span class="dw-name">Neural net (MLP)</span>
+        <span class="dw-track"><span class="dw-ci" style="left:9.72%;width:7.67%"></span><span class="dw-dot" style="left:13.74%"></span></span>
+        <span class="dw-val num">+0.012</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="LightGBM
+Behind Vegas: +0.0134 log loss
+95% CI: +0.0094 to +0.0172
+Accuracy on these games: 75.5%">
+        <span class="dw-name">LightGBM</span>
+        <span class="dw-track"><span class="dw-ci" style="left:10.39%;width:8.70%"></span><span class="dw-dot" style="left:14.85%"></span></span>
+        <span class="dw-val num">+0.013</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="XGBoost
+Behind Vegas: +0.0134 log loss
+95% CI: +0.0093 to +0.0172
+Accuracy on these games: 75.7%">
+        <span class="dw-name">XGBoost</span>
+        <span class="dw-track"><span class="dw-ci" style="left:10.30%;width:8.82%"></span><span class="dw-dot" style="left:14.86%"></span></span>
+        <span class="dw-val num">+0.013</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Hist. gradient boosting
+Behind Vegas: +0.0144 log loss
+95% CI: +0.0100 to +0.0185
+Accuracy on these games: 75.8%">
+        <span class="dw-name">Hist. gradient boosting</span>
+        <span class="dw-track"><span class="dw-ci" style="left:11.14%;width:9.43%"></span><span class="dw-dot" style="left:16.02%"></span></span>
+        <span class="dw-val num">+0.014</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Random forest
+Behind Vegas: +0.0171 log loss
+95% CI: +0.0132 to +0.0209
+Accuracy on these games: 75.7%">
+        <span class="dw-name">Random forest</span>
+        <span class="dw-track"><span class="dw-ci" style="left:14.72%;width:8.55%"></span><span class="dw-dot" style="left:19.00%"></span></span>
+        <span class="dw-val num">+0.017</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="k-nearest neighbors
+Behind Vegas: +0.0185 log loss
+95% CI: +0.0144 to +0.0221
+Accuracy on these games: 75.6%">
+        <span class="dw-name">k-nearest neighbors</span>
+        <span class="dw-track"><span class="dw-ci" style="left:16.04%;width:8.56%"></span><span class="dw-dot" style="left:20.55%"></span></span>
+        <span class="dw-val num">+0.018</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="SVM (RBF kernel)
+Behind Vegas: +0.0373 log loss
+95% CI: +0.0265 to +0.0487
+Accuracy on these games: 74.9%">
+        <span class="dw-name">SVM (RBF kernel)</span>
+        <span class="dw-track"><span class="dw-ci" style="left:29.48%;width:24.63%"></span><span class="dw-dot" style="left:41.43%"></span></span>
+        <span class="dw-val num">+0.037</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Our Elo
+Behind Vegas: +0.0424 log loss
+95% CI: +0.0364 to +0.0480
+Accuracy on these games: 73.8%">
+        <span class="dw-name">Our Elo</span>
+        <span class="dw-track"><span class="dw-ci" style="left:40.46%;width:12.87%"></span><span class="dw-dot" style="left:47.08%"></span></span>
+        <span class="dw-val num">+0.042</span>
+      </div>
+      <div class="dw-row " tabindex="0" data-tip="Naive Bayes
+Behind Vegas: +0.0736 log loss
+95% CI: +0.0657 to +0.0811
+Accuracy on these games: 75.0%">
+        <span class="dw-name">Naive Bayes</span>
+        <span class="dw-track"><span class="dw-ci" style="left:73.03%;width:17.08%"></span><span class="dw-dot" style="left:81.74%"></span></span>
+        <span class="dw-val num">+0.074</span>
+      </div>
+    </div><details class="tv"><summary>Table view: all 16 entries on the same 10,213 games</summary><div class="tbl-wrap"><table><thead><tr><th scope="col" class="">Algorithm</th><th scope="col" class="num">Log loss</th><th scope="col" class="num">Gap to Vegas</th><th scope="col" class="num">95% low</th><th scope="col" class="num">95% high</th><th scope="col" class="num">Accuracy</th></tr></thead><tbody><tr><td class="">Vegas closing line</td><td class="num">0.4690</td><td class="num">+0.0000</td><td class="num">+0.0000</td><td class="num">+0.0000</td><td class="num">76.4%</td></tr><tr><td class="">Margin LightGBM</td><td class="num">0.4799</td><td class="num">+0.0109</td><td class="num">+0.0067</td><td class="num">+0.0148</td><td class="num">76.0%</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">0.4807</td><td class="num">+0.0117</td><td class="num">+0.0079</td><td class="num">+0.0152</td><td class="num">75.8%</td></tr><tr><td class="">Ensemble (top 3)</td><td class="num">0.4807</td><td class="num">+0.0117</td><td class="num">+0.0079</td><td class="num">+0.0152</td><td class="num">75.7%</td></tr><tr><td class="">Logistic lasso</td><td class="num">0.4811</td><td class="num">+0.0121</td><td class="num">+0.0083</td><td class="num">+0.0156</td><td class="num">75.6%</td></tr><tr><td class="">Logistic regression</td><td class="num">0.4813</td><td class="num">+0.0122</td><td class="num">+0.0083</td><td class="num">+0.0159</td><td class="num">75.8%</td></tr><tr><td class="">Neural net (MLP)</td><td class="num">0.4814</td><td class="num">+0.0124</td><td class="num">+0.0088</td><td class="num">+0.0157</td><td class="num">75.9%</td></tr><tr><td class="">LightGBM</td><td class="num">0.4824</td><td class="num">+0.0134</td><td class="num">+0.0094</td><td class="num">+0.0172</td><td class="num">75.5%</td></tr><tr><td class="">XGBoost</td><td class="num">0.4824</td><td class="num">+0.0134</td><td class="num">+0.0093</td><td class="num">+0.0172</td><td class="num">75.7%</td></tr><tr><td class="">Hist. gradient boosting</td><td class="num">0.4835</td><td class="num">+0.0144</td><td class="num">+0.0100</td><td class="num">+0.0185</td><td class="num">75.8%</td></tr><tr><td class="">Random forest</td><td class="num">0.4861</td><td class="num">+0.0171</td><td class="num">+0.0132</td><td class="num">+0.0209</td><td class="num">75.7%</td></tr><tr><td class="">k-nearest neighbors</td><td class="num">0.4875</td><td class="num">+0.0185</td><td class="num">+0.0144</td><td class="num">+0.0221</td><td class="num">75.6%</td></tr><tr><td class="">SVM (RBF kernel)</td><td class="num">0.5063</td><td class="num">+0.0373</td><td class="num">+0.0265</td><td class="num">+0.0487</td><td class="num">74.9%</td></tr><tr><td class="">Our Elo</td><td class="num">0.5114</td><td class="num">+0.0424</td><td class="num">+0.0364</td><td class="num">+0.0480</td><td class="num">73.8%</td></tr><tr><td class="">Naive Bayes</td><td class="num">0.5426</td><td class="num">+0.0736</td><td class="num">+0.0657</td><td class="num">+0.0811</td><td class="num">75.0%</td></tr><tr><td class="">Home team always</td><td class="num">0.6610</td><td class="num">+0.1919</td><td class="num">+0.1791</td><td class="num">+0.2039</td><td class="num">62.4%</td></tr></tbody></table></div></details></div>
+</section>
+
+<section aria-labelledby="h-recall">
+  <span class="eyebrow">Recall</span>
+  <h2 id="h-recall">Which winners did it catch?</h2>
+  <div class="card">
+    <div class="stats4">
+      <div class="stat"><span class="v">83.2%</span><span class="l">of home-team wins caught</span></div>
+      <div class="stat"><span class="v">63.3%</span><span class="l">of road-team wins caught</span></div>
+      <div class="stat"><span class="v">73.3%</span><span class="l">balanced accuracy (average of both)</span></div>
+      <div class="stat"><span class="v">15.5%</span><span class="l">of Vegas upsets called (2,394 upsets)</span></div>
+    </div>
+    <p class="note">Recall means: of all the games a side really won, how many did we see coming? Road teams are usually the
+    underdogs, so they are harder to call. Upsets are rare by definition: a well-calibrated model should <em>not</em> call many of them,
+    or it would be wrong much more often. Chasing upset recall makes the overall picks worse.</p>
+  </div>
+  <div class="card">
+    <h3>Every algorithm, every metric</h3>
+    <p class="note">All 10,371 test games, sorted by log loss (the primary score). The last column is the Holm-adjusted p-value
+    against the leader: above 0.05 means "statistically tied with the leader". CFBD Elo covers fewer games, so it is
+    compared with Vegas on its own games instead (n/a here).</p>
+    <div class="tbl-wrap"><table><caption class="sr">every algorithm, all test games 2014-2025</caption><thead><tr><th scope="col" class="">Algorithm</th><th scope="col" class="num">Log loss</th><th scope="col" class="num">Brier</th><th scope="col" class="num">Accuracy</th><th scope="col" class="num">Bal. acc.</th><th scope="col" class="num">Recall home</th><th scope="col" class="num">Recall road</th><th scope="col" class="num">Upsets caught</th><th scope="col" class="num">AUC</th><th scope="col" class="num">Calib. error</th><th scope="col" class="num">p vs leader</th></tr></thead><tbody><tr><td class="">Margin LightGBM</td><td class="num">0.4816</td><td class="num">0.1606</td><td class="num">75.9%</td><td class="num">73.7%</td><td class="num">82.8%</td><td class="num">64.6%</td><td class="num">17.2%</td><td class="num">0.832</td><td class="num">1.1 pts</td><td class="num">leader</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">0.4822</td><td class="num">0.1608</td><td class="num">75.7%</td><td class="num">73.3%</td><td class="num">83.2%</td><td class="num">63.3%</td><td class="num">15.5%</td><td class="num">0.832</td><td class="num">1.3 pts</td><td class="num">0.740</td></tr><tr><td class="">Ensemble (top 3)</td><td class="num">0.4823</td><td class="num">0.1607</td><td class="num">75.6%</td><td class="num">73.4%</td><td class="num">82.6%</td><td class="num">64.1%</td><td class="num">15.9%</td><td class="num">0.832</td><td class="num">1.2 pts</td><td class="num">0.740</td></tr><tr><td class="">Logistic lasso</td><td class="num">0.4827</td><td class="num">0.1609</td><td class="num">75.6%</td><td class="num">73.3%</td><td class="num">82.4%</td><td class="num">64.3%</td><td class="num">15.3%</td><td class="num">0.831</td><td class="num">1.4 pts</td><td class="num">0.740</td></tr><tr><td class="">Logistic regression</td><td class="num">0.4829</td><td class="num">0.1609</td><td class="num">75.7%</td><td class="num">73.4%</td><td class="num">82.7%</td><td class="num">64.0%</td><td class="num">16.1%</td><td class="num">0.831</td><td class="num">1.1 pts</td><td class="num">0.740</td></tr><tr><td class="">Neural net (MLP)</td><td class="num">0.4830</td><td class="num">0.1609</td><td class="num">75.8%</td><td class="num">73.5%</td><td class="num">82.7%</td><td class="num">64.4%</td><td class="num">16.4%</td><td class="num">0.831</td><td class="num">1.2 pts</td><td class="num">0.740</td></tr><tr><td class="">XGBoost</td><td class="num">0.4840</td><td class="num">0.1612</td><td class="num">75.7%</td><td class="num">73.4%</td><td class="num">82.6%</td><td class="num">64.2%</td><td class="num">16.3%</td><td class="num">0.831</td><td class="num">1.2 pts</td><td class="num">0.000</td></tr><tr><td class="">LightGBM</td><td class="num">0.4840</td><td class="num">0.1611</td><td class="num">75.5%</td><td class="num">73.2%</td><td class="num">82.3%</td><td class="num">64.1%</td><td class="num">15.9%</td><td class="num">0.831</td><td class="num">1.2 pts</td><td class="num">0.006</td></tr><tr><td class="">Hist. gradient boosting</td><td class="num">0.4849</td><td class="num">0.1614</td><td class="num">75.7%</td><td class="num">73.5%</td><td class="num">82.4%</td><td class="num">64.6%</td><td class="num">16.6%</td><td class="num">0.830</td><td class="num">1.4 pts</td><td class="num">0.000</td></tr><tr><td class="">Random forest</td><td class="num">0.4877</td><td class="num">0.1625</td><td class="num">75.6%</td><td class="num">73.4%</td><td class="num">82.6%</td><td class="num">64.2%</td><td class="num">15.5%</td><td class="num">0.828</td><td class="num">1.7 pts</td><td class="num">0.000</td></tr><tr><td class="">k-nearest neighbors</td><td class="num">0.4892</td><td class="num">0.1631</td><td class="num">75.5%</td><td class="num">73.1%</td><td class="num">83.0%</td><td class="num">63.2%</td><td class="num">16.7%</td><td class="num">0.827</td><td class="num">2.1 pts</td><td class="num">0.000</td></tr><tr><td class="">SVM (RBF kernel)</td><td class="num">0.5083</td><td class="num">0.1702</td><td class="num">74.8%</td><td class="num">71.0%</td><td class="num">86.3%</td><td class="num">55.7%</td><td class="num">17.0%</td><td class="num">0.811</td><td class="num">3.2 pts</td><td class="num">0.000</td></tr><tr><td class="">Our Elo</td><td class="num">0.5126</td><td class="num">0.1722</td><td class="num">73.8%</td><td class="num">71.2%</td><td class="num">81.8%</td><td class="num">60.5%</td><td class="num">20.1%</td><td class="num">0.805</td><td class="num">1.8 pts</td><td class="num">0.000</td></tr><tr><td class="">CFBD Elo (8,760 games)</td><td class="num">0.5393</td><td class="num">0.1820</td><td class="num">72.4%</td><td class="num">70.9%</td><td class="num">80.2%</td><td class="num">61.6%</td><td class="num">20.3%</td><td class="num">0.792</td><td class="num">1.0 pts</td><td class="num">n/a</td></tr><tr><td class="">Naive Bayes</td><td class="num">0.5437</td><td class="num">0.1799</td><td class="num">74.9%</td><td class="num">73.2%</td><td class="num">80.0%</td><td class="num">66.4%</td><td class="num">17.2%</td><td class="num">0.785</td><td class="num">5.2 pts</td><td class="num">0.000</td></tr><tr><td class="">Home team always</td><td class="num">0.6614</td><td class="num">0.2343</td><td class="num">62.3%</td><td class="num">50.0%</td><td class="num">100.0%</td><td class="num">0.0%</td><td class="num">42.8%</td><td class="num">0.519</td><td class="num">1.0 pts</td><td class="num">0.000</td></tr></tbody></table></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-cal">
+  <span class="eyebrow">Confidence</span>
+  <h2 id="h-cal">When it says 70%, does it happen 70% of the time?</h2>
+  <div class="two">
+    <div class="card"><div class="legend"><span class="key"><span class="swatch-line s1"></span>Our model</span><span class="key"><span class="swatch-line s2"></span>Elo only</span><span class="key"><span class="swatch-line s3"></span>Vegas</span><span class="key"><span class="swatch-line diag-key"></span>Perfect calibration</span></div><div class="svg-wrap sq"><svg viewBox="0 0 420 420" class="chart chart-sq" role="img" aria-label="Calibration: predicted chance vs how often it happened"><line class="grid" x1="52" x2="402" y1="380.0" y2="380.0"/><text class="tick" x="44" y="384.0" text-anchor="end">0%</text><text class="tick" x="52.0" y="398" text-anchor="middle">0%</text><line class="grid" x1="52" x2="402" y1="306.8" y2="306.8"/><text class="tick" x="44" y="310.8" text-anchor="end">20%</text><text class="tick" x="122.0" y="398" text-anchor="middle">20%</text><line class="grid" x1="52" x2="402" y1="233.6" y2="233.6"/><text class="tick" x="44" y="237.6" text-anchor="end">40%</text><text class="tick" x="192.0" y="398" text-anchor="middle">40%</text><line class="grid" x1="52" x2="402" y1="160.4" y2="160.4"/><text class="tick" x="44" y="164.4" text-anchor="end">60%</text><text class="tick" x="262.0" y="398" text-anchor="middle">60%</text><line class="grid" x1="52" x2="402" y1="87.2" y2="87.2"/><text class="tick" x="44" y="91.2" text-anchor="end">80%</text><text class="tick" x="332.0" y="398" text-anchor="middle">80%</text><line class="grid" x1="52" x2="402" y1="14.0" y2="14.0"/><text class="tick" x="44" y="18.0" text-anchor="end">100%</text><text class="tick" x="402.0" y="398" text-anchor="middle">100%</text><line class="diag" x1="52" y1="380" x2="402" y2="14"/><text class="tick" x="227.0" y="414" text-anchor="middle">What the model said (home team win chance)</text><path class="line s1" d="M73.3,357.7 L105.7,332.7 L139.7,297.8 L174.8,249.0 L209.5,208.6 L244.2,178.7 L279.2,133.8 L314.3,99.1 L349.8,65.5 L387.4,26.1"/><g class="pt" tabindex="0" data-tip="Our model
+Said: 6%
+Happened: 6%
+Games: 263"><circle class="hit-c" cx="73.3" cy="357.7" r="12"/><circle class="dot s1" cx="73.3" cy="357.7" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 15%
+Happened: 13%
+Games: 542"><circle class="hit-c" cx="105.7" cy="332.7" r="12"/><circle class="dot s1" cx="105.7" cy="332.7" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 25%
+Happened: 22%
+Games: 770"><circle class="hit-c" cx="139.7" cy="297.8" r="12"/><circle class="dot s1" cx="139.7" cy="297.8" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 35%
+Happened: 36%
+Games: 933"><circle class="hit-c" cx="174.8" cy="249.0" r="12"/><circle class="dot s1" cx="174.8" cy="249.0" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 45%
+Happened: 47%
+Games: 1,055"><circle class="hit-c" cx="209.5" cy="208.6" r="12"/><circle class="dot s1" cx="209.5" cy="208.6" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 55%
+Happened: 55%
+Games: 1,129"><circle class="hit-c" cx="244.2" cy="178.7" r="12"/><circle class="dot s1" cx="244.2" cy="178.7" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 65%
+Happened: 67%
+Games: 1,204"><circle class="hit-c" cx="279.2" cy="133.8" r="12"/><circle class="dot s1" cx="279.2" cy="133.8" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 75%
+Happened: 77%
+Games: 1,213"><circle class="hit-c" cx="314.3" cy="99.1" r="12"/><circle class="dot s1" cx="314.3" cy="99.1" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 85%
+Happened: 86%
+Games: 1,322"><circle class="hit-c" cx="349.8" cy="65.5" r="12"/><circle class="dot s1" cx="349.8" cy="65.5" r="4"/></g><g class="pt" tabindex="0" data-tip="Our model
+Said: 96%
+Happened: 97%
+Games: 1,940"><circle class="hit-c" cx="387.4" cy="26.1" r="12"/><circle class="dot s1" cx="387.4" cy="26.1" r="4"/></g><path class="line s2" d="M75.5,353.5 L104.9,317.6 L140.6,280.7 L175.6,230.3 L209.5,203.9 L245.0,169.1 L280.1,140.3 L314.9,112.6 L350.3,69.9 L382.5,30.8"/><g class="pt" tabindex="0" data-tip="Elo only
+Said: 7%
+Happened: 7%
+Games: 249"><circle class="hit-c" cx="75.5" cy="353.5" r="12"/><circle class="dot s2" cx="75.5" cy="353.5" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 15%
+Happened: 17%
+Games: 610"><circle class="hit-c" cx="104.9" cy="317.6" r="12"/><circle class="dot s2" cx="104.9" cy="317.6" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 25%
+Happened: 27%
+Games: 826"><circle class="hit-c" cx="140.6" cy="280.7" r="12"/><circle class="dot s2" cx="140.6" cy="280.7" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 35%
+Happened: 41%
+Games: 873"><circle class="hit-c" cx="175.6" cy="230.3" r="12"/><circle class="dot s2" cx="175.6" cy="230.3" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 45%
+Happened: 48%
+Games: 987"><circle class="hit-c" cx="209.5" cy="203.9" r="12"/><circle class="dot s2" cx="209.5" cy="203.9" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 55%
+Happened: 58%
+Games: 1,102"><circle class="hit-c" cx="245.0" cy="169.1" r="12"/><circle class="dot s2" cx="245.0" cy="169.1" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 65%
+Happened: 65%
+Games: 1,182"><circle class="hit-c" cx="280.1" cy="140.3" r="12"/><circle class="dot s2" cx="280.1" cy="140.3" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 75%
+Happened: 73%
+Games: 1,332"><circle class="hit-c" cx="314.9" cy="112.6" r="12"/><circle class="dot s2" cx="314.9" cy="112.6" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 85%
+Happened: 85%
+Games: 1,513"><circle class="hit-c" cx="350.3" cy="69.9" r="12"/><circle class="dot s2" cx="350.3" cy="69.9" r="4"/></g><g class="pt" tabindex="0" data-tip="Elo only
+Said: 94%
+Happened: 95%
+Games: 1,697"><circle class="hit-c" cx="382.5" cy="30.8" r="12"/><circle class="dot s2" cx="382.5" cy="30.8" r="4"/></g><path class="line s3" d="M71.6,352.5 L104.0,324.9 L141.4,289.3 L175.1,242.1 L203.1,209.0 L250.1,188.7 L278.8,135.7 L312.7,116.9 L351.4,66.0 L388.9,27.3"/><g class="pt" tabindex="0" data-tip="Vegas
+Said: 6%
+Happened: 8%
+Games: 399"><circle class="hit-c" cx="71.6" cy="352.5" r="12"/><circle class="dot s3" cx="71.6" cy="352.5" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 15%
+Happened: 15%
+Games: 644"><circle class="hit-c" cx="104.0" cy="324.9" r="12"/><circle class="dot s3" cx="104.0" cy="324.9" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 26%
+Happened: 25%
+Games: 718"><circle class="hit-c" cx="141.4" cy="289.3" r="12"/><circle class="dot s3" cx="141.4" cy="289.3" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 35%
+Happened: 38%
+Games: 908"><circle class="hit-c" cx="175.1" cy="242.1" r="12"/><circle class="dot s3" cx="175.1" cy="242.1" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 43%
+Happened: 47%
+Games: 809"><circle class="hit-c" cx="203.1" cy="209.0" r="12"/><circle class="dot s3" cx="203.1" cy="209.0" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 57%
+Happened: 52%
+Games: 945"><circle class="hit-c" cx="250.1" cy="188.7" r="12"/><circle class="dot s3" cx="250.1" cy="188.7" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 65%
+Happened: 67%
+Games: 1,110"><circle class="hit-c" cx="278.8" cy="135.7" r="12"/><circle class="dot s3" cx="278.8" cy="135.7" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 74%
+Happened: 72%
+Games: 1,074"><circle class="hit-c" cx="312.7" cy="116.9" r="12"/><circle class="dot s3" cx="312.7" cy="116.9" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 86%
+Happened: 86%
+Games: 1,268"><circle class="hit-c" cx="351.4" cy="66.0" r="12"/><circle class="dot s3" cx="351.4" cy="66.0" r="4"/></g><g class="pt" tabindex="0" data-tip="Vegas
+Said: 96%
+Happened: 96%
+Games: 2,338"><circle class="hit-c" cx="388.9" cy="27.3" r="12"/><circle class="dot s3" cx="388.9" cy="27.3" r="4"/></g></svg></div><details class="tv"><summary>Table view: calibration bins</summary><div class="tbl-wrap"><table><thead><tr><th scope="col" class="">Model</th><th scope="col" class="num">Bin from</th><th scope="col" class="num">Bin to</th><th scope="col" class="num">Said</th><th scope="col" class="num">Happened</th><th scope="col" class="num">Games</th></tr></thead><tbody><tr><td class="">Our Elo</td><td class="num">0.0%</td><td class="num">10.0%</td><td class="num">6.7%</td><td class="num">7.2%</td><td class="num">249</td></tr><tr><td class="">Our Elo</td><td class="num">10.0%</td><td class="num">20.0%</td><td class="num">15.1%</td><td class="num">17.0%</td><td class="num">610</td></tr><tr><td class="">Our Elo</td><td class="num">20.0%</td><td class="num">30.0%</td><td class="num">25.3%</td><td class="num">27.1%</td><td class="num">826</td></tr><tr><td class="">Our Elo</td><td class="num">30.0%</td><td class="num">40.0%</td><td class="num">35.3%</td><td class="num">40.9%</td><td class="num">873</td></tr><tr><td class="">Our Elo</td><td class="num">40.0%</td><td class="num">50.0%</td><td class="num">45.0%</td><td class="num">48.1%</td><td class="num">987</td></tr><tr><td class="">Our Elo</td><td class="num">50.0%</td><td class="num">60.0%</td><td class="num">55.1%</td><td class="num">57.6%</td><td class="num">1,102</td></tr><tr><td class="">Our Elo</td><td class="num">60.0%</td><td class="num">70.0%</td><td class="num">65.2%</td><td class="num">65.5%</td><td class="num">1,182</td></tr><tr><td class="">Our Elo</td><td class="num">70.0%</td><td class="num">80.0%</td><td class="num">75.1%</td><td class="num">73.0%</td><td class="num">1,332</td></tr><tr><td class="">Our Elo</td><td class="num">80.0%</td><td class="num">90.0%</td><td class="num">85.2%</td><td class="num">84.7%</td><td class="num">1,513</td></tr><tr><td class="">Our Elo</td><td class="num">90.0%</td><td class="num">100.0%</td><td class="num">94.4%</td><td class="num">95.4%</td><td class="num">1,697</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">0.0%</td><td class="num">10.0%</td><td class="num">6.1%</td><td class="num">6.1%</td><td class="num">263</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">10.0%</td><td class="num">20.0%</td><td class="num">15.3%</td><td class="num">12.9%</td><td class="num">542</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">20.0%</td><td class="num">30.0%</td><td class="num">25.1%</td><td class="num">22.5%</td><td class="num">770</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">30.0%</td><td class="num">40.0%</td><td class="num">35.1%</td><td class="num">35.8%</td><td class="num">933</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">40.0%</td><td class="num">50.0%</td><td class="num">45.0%</td><td class="num">46.8%</td><td class="num">1,055</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">50.0%</td><td class="num">60.0%</td><td class="num">54.9%</td><td class="num">55.0%</td><td class="num">1,129</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">60.0%</td><td class="num">70.0%</td><td class="num">64.9%</td><td class="num">67.3%</td><td class="num">1,204</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">70.0%</td><td class="num">80.0%</td><td class="num">75.0%</td><td class="num">76.8%</td><td class="num">1,213</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">80.0%</td><td class="num">90.0%</td><td class="num">85.1%</td><td class="num">85.9%</td><td class="num">1,322</td></tr><tr><td class="">Margin ridge (winner)</td><td class="num">90.0%</td><td class="num">100.0%</td><td class="num">95.8%</td><td class="num">96.7%</td><td class="num">1,940</td></tr><tr><td class="">Vegas closing line</td><td class="num">0.0%</td><td class="num">10.0%</td><td class="num">5.6%</td><td class="num">7.5%</td><td class="num">399</td></tr><tr><td class="">Vegas closing line</td><td class="num">10.0%</td><td class="num">20.0%</td><td class="num">14.9%</td><td class="num">15.1%</td><td class="num">644</td></tr><tr><td class="">Vegas closing line</td><td class="num">20.0%</td><td class="num">30.0%</td><td class="num">25.5%</td><td class="num">24.8%</td><td class="num">718</td></tr><tr><td class="">Vegas closing line</td><td class="num">30.0%</td><td class="num">40.0%</td><td class="num">35.2%</td><td class="num">37.7%</td><td class="num">908</td></tr><tr><td class="">Vegas closing line</td><td class="num">40.0%</td><td class="num">50.0%</td><td class="num">43.2%</td><td class="num">46.7%</td><td class="num">809</td></tr><tr><td class="">Vegas closing line</td><td class="num">50.0%</td><td class="num">60.0%</td><td class="num">56.6%</td><td class="num">52.3%</td><td class="num">945</td></tr><tr><td class="">Vegas closing line</td><td class="num">60.0%</td><td class="num">70.0%</td><td class="num">64.8%</td><td class="num">66.8%</td><td class="num">1,110</td></tr><tr><td class="">Vegas closing line</td><td class="num">70.0%</td><td class="num">80.0%</td><td class="num">74.5%</td><td class="num">71.9%</td><td class="num">1,074</td></tr><tr><td class="">Vegas closing line</td><td class="num">80.0%</td><td class="num">90.0%</td><td class="num">85.5%</td><td class="num">85.8%</td><td class="num">1,268</td></tr><tr><td class="">Vegas closing line</td><td class="num">90.0%</td><td class="num">100.0%</td><td class="num">96.3%</td><td class="num">96.4%</td><td class="num">2,338</td></tr></tbody></table></div></details></div>
+    <div class="card">
+      <p>Each dot groups games by what the model said before kickoff, then checks how often that team really won.
+      Dots on the diagonal mean the confidence is honest. Our model's average gap is <strong>1.3 percentage points</strong>
+      (Elo: 1.8, Vegas: 1.6).</p>
+      <p class="note">Calibration slope 1.07 (1.00 is perfect; above 1 means slightly too cautious, below 1 means overconfident).
+      When the model is at least 80% sure, which happens in 39% of games, it is right 91.7% of the time.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-season">
+  <span class="eyebrow">Stability</span>
+  <h2 id="h-season">Season by season, 2014–2025</h2>
+  <p>Log loss each test season (lower is better). Some seasons are harder for everyone: 2020 (COVID schedules) and 2021–2022 (transfer portal churn) stand out.</p>
+  <div class="card"><div class="legend"><span class="key"><span class="swatch-line s1"></span>Our model</span><span class="key"><span class="swatch-line s2"></span>Elo only</span><span class="key"><span class="swatch-line s3"></span>Vegas</span></div><div class="svg-wrap"><svg viewBox="0 0 960 320" class="chart" role="img" aria-label="Log loss by season"><line class="grid" x1="58" x2="840" y1="286.0" y2="286.0"/><text class="tick" x="50" y="290.0" text-anchor="end">0.42</text><line class="grid" x1="58" x2="840" y1="232.4" y2="232.4"/><text class="tick" x="50" y="236.4" text-anchor="end">0.45</text><line class="grid" x1="58" x2="840" y1="178.8" y2="178.8"/><text class="tick" x="50" y="182.8" text-anchor="end">0.48</text><line class="grid" x1="58" x2="840" y1="125.2" y2="125.2"/><text class="tick" x="50" y="129.2" text-anchor="end">0.51</text><line class="grid" x1="58" x2="840" y1="71.6" y2="71.6"/><text class="tick" x="50" y="75.6" text-anchor="end">0.54</text><line class="grid" x1="58" x2="840" y1="18.0" y2="18.0"/><text class="tick" x="50" y="22.0" text-anchor="end">0.57</text><line class="axis" x1="58" x2="840" y1="286" y2="286"/><text class="tick" x="58.0" y="306" text-anchor="middle">2014</text><text class="tick" x="129.1" y="306" text-anchor="middle">2015</text><text class="tick" x="200.2" y="306" text-anchor="middle">2016</text><text class="tick" x="271.3" y="306" text-anchor="middle">2017</text><text class="tick" x="342.4" y="306" text-anchor="middle">2018</text><text class="tick" x="413.5" y="306" text-anchor="middle">2019</text><text class="tick" x="484.5" y="306" text-anchor="middle">2020</text><text class="tick" x="555.6" y="306" text-anchor="middle">2021</text><text class="tick" x="626.7" y="306" text-anchor="middle">2022</text><text class="tick" x="697.8" y="306" text-anchor="middle">2023</text><text class="tick" x="768.9" y="306" text-anchor="middle">2024</text><text class="tick" x="840.0" y="306" text-anchor="middle">2025</text><path class="line s1" d="M58.0,190.1 L129.1,234.1 L200.2,130.7 L271.3,183.1 L342.4,205.6 L413.5,233.9 L484.5,118.1 L555.6,111.7 L626.7,136.2 L697.8,203.4 L768.9,153.2 L840.0,179.4"/><circle class="dot s1" cx="58.0" cy="190.1" r="4"/><circle class="dot s1" cx="129.1" cy="234.1" r="4"/><circle class="dot s1" cx="200.2" cy="130.7" r="4"/><circle class="dot s1" cx="271.3" cy="183.1" r="4"/><circle class="dot s1" cx="342.4" cy="205.6" r="4"/><circle class="dot s1" cx="413.5" cy="233.9" r="4"/><circle class="dot s1" cx="484.5" cy="118.1" r="4"/><circle class="dot s1" cx="555.6" cy="111.7" r="4"/><circle class="dot s1" cx="626.7" cy="136.2" r="4"/><circle class="dot s1" cx="697.8" cy="203.4" r="4"/><circle class="dot s1" cx="768.9" cy="153.2" r="4"/><circle class="dot s1" cx="840.0" cy="179.4" r="4"/><path class="line s2" d="M58.0,118.1 L129.1,169.5 L200.2,82.4 L271.3,101.8 L342.4,165.3 L413.5,183.4 L484.5,55.4 L555.6,112.3 L626.7,51.5 L697.8,141.1 L768.9,95.3 L840.0,147.3"/><circle class="dot s2" cx="58.0" cy="118.1" r="4"/><circle class="dot s2" cx="129.1" cy="169.5" r="4"/><circle class="dot s2" cx="200.2" cy="82.4" r="4"/><circle class="dot s2" cx="271.3" cy="101.8" r="4"/><circle class="dot s2" cx="342.4" cy="165.3" r="4"/><circle class="dot s2" cx="413.5" cy="183.4" r="4"/><circle class="dot s2" cx="484.5" cy="55.4" r="4"/><circle class="dot s2" cx="555.6" cy="112.3" r="4"/><circle class="dot s2" cx="626.7" cy="51.5" r="4"/><circle class="dot s2" cx="697.8" cy="141.1" r="4"/><circle class="dot s2" cx="768.9" cy="95.3" r="4"/><circle class="dot s2" cx="840.0" cy="147.3" r="4"/><path class="line s3" d="M58.0,208.2 L129.1,255.3 L200.2,158.7 L271.3,206.7 L342.4,241.6 L413.5,254.7 L484.5,143.7 L555.6,159.5 L626.7,145.8 L697.8,218.6 L768.9,168.1 L840.0,205.5"/><circle class="dot s3" cx="58.0" cy="208.2" r="4"/><circle class="dot s3" cx="129.1" cy="255.3" r="4"/><circle class="dot s3" cx="200.2" cy="158.7" r="4"/><circle class="dot s3" cx="271.3" cy="206.7" r="4"/><circle class="dot s3" cx="342.4" cy="241.6" r="4"/><circle class="dot s3" cx="413.5" cy="254.7" r="4"/><circle class="dot s3" cx="484.5" cy="143.7" r="4"/><circle class="dot s3" cx="555.6" cy="159.5" r="4"/><circle class="dot s3" cx="626.7" cy="145.8" r="4"/><circle class="dot s3" cx="697.8" cy="218.6" r="4"/><circle class="dot s3" cx="768.9" cy="168.1" r="4"/><circle class="dot s3" cx="840.0" cy="205.5" r="4"/><text class="end-label" x="852" y="147.3">Elo only</text><text class="end-label" x="852" y="179.4">Our model</text><text class="end-label" x="852" y="205.5">Vegas</text><rect class="hit" x="22.5" y="18" width="71.1" height="268" tabindex="0" data-tip="2014
+Our model: 0.47
+Elo only: 0.51
+Vegas: 0.46" data-x="58.0"/><rect class="hit" x="93.5" y="18" width="71.1" height="268" tabindex="0" data-tip="2015
+Our model: 0.45
+Elo only: 0.49
+Vegas: 0.44" data-x="129.1"/><rect class="hit" x="164.6" y="18" width="71.1" height="268" tabindex="0" data-tip="2016
+Our model: 0.51
+Elo only: 0.53
+Vegas: 0.49" data-x="200.2"/><rect class="hit" x="235.7" y="18" width="71.1" height="268" tabindex="0" data-tip="2017
+Our model: 0.48
+Elo only: 0.52
+Vegas: 0.46" data-x="271.3"/><rect class="hit" x="306.8" y="18" width="71.1" height="268" tabindex="0" data-tip="2018
+Our model: 0.46
+Elo only: 0.49
+Vegas: 0.44" data-x="342.4"/><rect class="hit" x="377.9" y="18" width="71.1" height="268" tabindex="0" data-tip="2019
+Our model: 0.45
+Elo only: 0.48
+Vegas: 0.44" data-x="413.5"/><rect class="hit" x="449.0" y="18" width="71.1" height="268" tabindex="0" data-tip="2020
+Our model: 0.51
+Elo only: 0.55
+Vegas: 0.50" data-x="484.5"/><rect class="hit" x="520.1" y="18" width="71.1" height="268" tabindex="0" data-tip="2021
+Our model: 0.52
+Elo only: 0.52
+Vegas: 0.49" data-x="555.6"/><rect class="hit" x="591.2" y="18" width="71.1" height="268" tabindex="0" data-tip="2022
+Our model: 0.50
+Elo only: 0.55
+Vegas: 0.50" data-x="626.7"/><rect class="hit" x="662.3" y="18" width="71.1" height="268" tabindex="0" data-tip="2023
+Our model: 0.47
+Elo only: 0.50
+Vegas: 0.46" data-x="697.8"/><rect class="hit" x="733.4" y="18" width="71.1" height="268" tabindex="0" data-tip="2024
+Our model: 0.49
+Elo only: 0.53
+Vegas: 0.49" data-x="768.9"/><rect class="hit" x="804.5" y="18" width="71.1" height="268" tabindex="0" data-tip="2025
+Our model: 0.48
+Elo only: 0.50
+Vegas: 0.47" data-x="840.0"/><line class="crosshair" x1="0" x2="0" y1="18" y2="286" visibility="hidden"/></svg></div><details class="tv"><summary>Table view: log loss per season</summary><div class="tbl-wrap"><table><thead><tr><th scope="col" class="">Season</th><th scope="col" class="num">Our model</th><th scope="col" class="num">Elo</th><th scope="col" class="num">Vegas</th></tr></thead><tbody><tr><td class="">2014.0</td><td class="num">0.4737</td><td class="num">0.5140</td><td class="num">0.4636</td></tr><tr><td class="">2015.0</td><td class="num">0.4491</td><td class="num">0.4852</td><td class="num">0.4372</td></tr><tr><td class="">2016.0</td><td class="num">0.5069</td><td class="num">0.5340</td><td class="num">0.4913</td></tr><tr><td class="">2017.0</td><td class="num">0.4776</td><td class="num">0.5231</td><td class="num">0.4644</td></tr><tr><td class="">2018.0</td><td class="num">0.4650</td><td class="num">0.4875</td><td class="num">0.4449</td></tr><tr><td class="">2019.0</td><td class="num">0.4492</td><td class="num">0.4774</td><td class="num">0.4375</td></tr><tr><td class="">2020.0</td><td class="num">0.5140</td><td class="num">0.5491</td><td class="num">0.4996</td></tr><tr><td class="">2021.0</td><td class="num">0.5175</td><td class="num">0.5172</td><td class="num">0.4908</td></tr><tr><td class="">2022.0</td><td class="num">0.5038</td><td class="num">0.5512</td><td class="num">0.4984</td></tr><tr><td class="">2023.0</td><td class="num">0.4662</td><td class="num">0.5011</td><td class="num">0.4577</td></tr><tr><td class="">2024.0</td><td class="num">0.4943</td><td class="num">0.5267</td><td class="num">0.4860</td></tr><tr><td class="">2025.0</td><td class="num">0.4797</td><td class="num">0.4976</td><td class="num">0.4651</td></tr></tbody></table></div></details></div>
+</section>
+
+<section aria-labelledby="h-abl">
+  <span class="eyebrow">What matters</span>
+  <h2 id="h-abl">Which data earns its place?</h2>
+  <p>We re-ran the winner five times, adding one group of clues each time. The bar is how much log loss it saved compared with Elo alone.
+  Roster data (recruiting talent, returning players, transfer portal) is the biggest single gain after the opponent-adjusted ratings.</p>
+  <div class="two">
+    <div class="card"><div class="bars"><div class="bar-row " tabindex="0" data-tip="Elo only
+Log loss 0.5121
+Accuracy 73.9%
+Features: 2">
+        <span class="bar-name">Elo only</span>
+        <span class="bar-track"><span class="bar" style="width:0.00%"></span><span class="bar-val num" style="left:0.00%">starting point</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="+ power ratings
+Log loss 0.4958
+Accuracy 74.7%
+Features: 11">
+        <span class="bar-name">+ power ratings</span>
+        <span class="bar-track"><span class="bar" style="width:46.08%"></span><span class="bar-val num" style="left:46.08%">0.016 saved</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="+ roster (talent, returning, portal)
+Log loss 0.4844
+Accuracy 75.5%
+Features: 23">
+        <span class="bar-name">+ roster (talent, returning, portal)</span>
+        <span class="bar-track"><span class="bar" style="width:78.59%"></span><span class="bar-val num" style="left:78.59%">0.028 saved</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="+ season form &amp; AP poll
+Log loss 0.4822
+Accuracy 75.7%
+Features: 35">
+        <span class="bar-name">+ season form &amp; AP poll</span>
+        <span class="bar-track"><span class="bar" style="width:84.75%"></span><span class="bar-val num" style="left:84.75%">0.030 saved</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="all clues (+ context)
+Log loss 0.4822
+Accuracy 75.7%
+Features: 40">
+        <span class="bar-name">all clues (+ context)</span>
+        <span class="bar-track"><span class="bar" style="width:84.75%"></span><span class="bar-val num" style="left:84.75%">0.030 saved</span></span>
+      </div></div><details class="tv"><summary>Table view: feature-group ablation</summary><div class="tbl-wrap"><table><thead><tr><th scope="col" class="">Clues used</th><th scope="col" class="num">Clues</th><th scope="col" class="num">Log loss</th><th scope="col" class="num">Accuracy</th></tr></thead><tbody><tr><td class="">1 Elo only</td><td class="num">2</td><td class="num">0.5121</td><td class="num">73.9%</td></tr><tr><td class="">2 + power ratings</td><td class="num">11</td><td class="num">0.4958</td><td class="num">74.7%</td></tr><tr><td class="">3 + roster (talent, returning, portal)</td><td class="num">23</td><td class="num">0.4844</td><td class="num">75.5%</td></tr><tr><td class="">4 + season form &amp; AP poll</td><td class="num">35</td><td class="num">0.4822</td><td class="num">75.7%</td></tr><tr><td class="">5 all clues (+ context)</td><td class="num">40</td><td class="num">0.4822</td><td class="num">75.7%</td></tr></tbody></table></div></details></div>
+    <div class="card">
+      <h3>Strongest clues in the final model</h3>
+      <p class="note">Weights on a common scale (points of margin per typical change). Clues overlap, so read them as a group, not one by one.</p>
+      <ul class="clean"><li><span>Point-margin power rating gap</span> <span class='num coef'>+2.66</span> <code class='muted'>pred_pts</code></li><li><span>Success-rate rating gap</span> <span class='num coef'>+2.27</span> <code class='muted'>pred_sr</code></li><li><span>Yards-per-play rating gap</span> <span class='num coef'>+1.98</span> <code class='muted'>pred_ypp</code></li><li><span>Elo win chance (with home field)</span> <span class='num coef'>+1.82</span> <code class='muted'>elo_logit</code></li><li><span>Big school vs small school</span> <span class='num coef'>+1.73</span> <code class='muted'>d_is_fbs</code></li><li><span>Elo rating difference</span> <span class='num coef'>+1.71</span> <code class='muted'>d_elo</code></li><li><span>Point rating difference</span> <span class='num coef'>+1.64</span> <code class='muted'>d_r_pts</code></li><li><span>Returning offense difference</span> <span class='num coef'>+1.57</span> <code class='muted'>d_ret_off</code></li></ul>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-champ">
+  <span class="eyebrow">Champion backtest</span>
+  <h2 id="h-champ">Could it have called the champion?</h2>
+  <p>For every playoff season we rebuilt the real bracket, used the model that season would have had (trained only on earlier years),
+  and played the playoff 20,000 times. The model's pre-playoff favorite won <strong>7 of 12</strong> titles, and the champion was
+  in its top two <strong>10 of 12</strong> times. On average it gave the real champion 34.0%,
+  against 27.3% for Elo and 22.2% for a random guess.</p>
+  <div class="card"><div class="legend"><span class="key"><span class="swatch-dot s1"></span>Our model</span><span class="key"><span class="swatch-dot s2"></span>Elo only</span><span class="key"><span class="swatch-tick"></span>Random guess (1 in 4, or 1 in 12)</span></div><div class="svg-wrap"><svg viewBox="0 0 960 330" class="chart" role="img" aria-label="Probability given to the eventual champion, right before each playoff"><line class="grid" x1="52" x2="944" y1="278.0" y2="278.0"/><text class="tick" x="44" y="282.0" text-anchor="end">0%</text><line class="grid" x1="52" x2="944" y1="234.3" y2="234.3"/><text class="tick" x="44" y="238.3" text-anchor="end">10%</text><line class="grid" x1="52" x2="944" y1="190.7" y2="190.7"/><text class="tick" x="44" y="194.7" text-anchor="end">20%</text><line class="grid" x1="52" x2="944" y1="147.0" y2="147.0"/><text class="tick" x="44" y="151.0" text-anchor="end">30%</text><line class="grid" x1="52" x2="944" y1="103.3" y2="103.3"/><text class="tick" x="44" y="107.3" text-anchor="end">40%</text><line class="grid" x1="52" x2="944" y1="59.7" y2="59.7"/><text class="tick" x="44" y="63.7" text-anchor="end">50%</text><line class="grid" x1="52" x2="944" y1="16.0" y2="16.0"/><text class="tick" x="44" y="20.0" text-anchor="end">60%</text><line class="axis" x1="52" x2="944" y1="278" y2="278"/><text class="tick" x="89.2" y="295" text-anchor="middle">2014</text><text class="tick small" x="89.2" y="310" text-anchor="middle">Ohio State</text><line class="uni" x1="80.2" x2="98.2" y1="168.8" y2="168.8"/><line class="stem" x1="89.2" x2="89.2" y1="198.6" y2="194.4"/><circle class="dot s2" cx="89.2" cy="198.6" r="4.5"/><circle class="dot s1" cx="89.2" cy="194.4" r="5"/><rect class="hit" x="52.0" y="16" width="74.3" height="262" tabindex="0" data-tip="2014: Ohio State won
+Our model gave them 19.1% (rank 3 of 4)
+Elo gave them 18.2%
+Random guess: 25.0%
+Model favorite: Alabama (36.3%)" data-x="89.2"/><text class="tick" x="163.5" y="295" text-anchor="middle">2015</text><text class="tick small" x="163.5" y="310" text-anchor="middle">Alabama</text><line class="uni" x1="154.5" x2="172.5" y1="168.8" y2="168.8"/><line class="stem" x1="163.5" x2="163.5" y1="82.8" y2="91.9"/><circle class="dot s2" cx="163.5" cy="82.8" r="4.5"/><circle class="dot s1" cx="163.5" cy="91.9" r="5"/><rect class="hit" x="126.3" y="16" width="74.3" height="262" tabindex="0" data-tip="2015: Alabama won
+Our model gave them 42.6% (rank 1 of 4)
+Elo gave them 44.7%
+Random guess: 25.0%
+Model favorite: Alabama (42.6%)" data-x="163.5"/><text class="tick" x="237.8" y="295" text-anchor="middle">2016</text><text class="tick small" x="237.8" y="310" text-anchor="middle">Clemson</text><line class="uni" x1="228.8" x2="246.8" y1="168.8" y2="168.8"/><line class="stem" x1="237.8" x2="237.8" y1="215.6" y2="190.7"/><circle class="dot s2" cx="237.8" cy="215.6" r="4.5"/><circle class="dot s1" cx="237.8" cy="190.7" r="5"/><rect class="hit" x="200.7" y="16" width="74.3" height="262" tabindex="0" data-tip="2016: Clemson won
+Our model gave them 20.0% (rank 2 of 4)
+Elo gave them 14.3%
+Random guess: 25.0%
+Model favorite: Alabama (50.0%)" data-x="237.8"/><text class="tick" x="312.2" y="295" text-anchor="middle">2017</text><text class="tick small" x="312.2" y="310" text-anchor="middle">Alabama</text><line class="uni" x1="303.2" x2="321.2" y1="168.8" y2="168.8"/><line class="stem" x1="312.2" x2="312.2" y1="160.7" y2="94.5"/><circle class="dot s2" cx="312.2" cy="160.7" r="4.5"/><circle class="dot s1" cx="312.2" cy="94.5" r="5"/><rect class="hit" x="275.0" y="16" width="74.3" height="262" tabindex="0" data-tip="2017: Alabama won
+Our model gave them 42.0% (rank 1 of 4)
+Elo gave them 26.9%
+Random guess: 25.0%
+Model favorite: Alabama (42.0%)" data-x="312.2"/><text class="tick" x="386.5" y="295" text-anchor="middle">2018</text><text class="tick small" x="386.5" y="310" text-anchor="middle">Clemson</text><line class="uni" x1="377.5" x2="395.5" y1="168.8" y2="168.8"/><line class="stem" x1="386.5" x2="386.5" y1="161.4" y2="124.9"/><circle class="dot s2" cx="386.5" cy="161.4" r="4.5"/><circle class="dot s1" cx="386.5" cy="124.9" r="5"/><rect class="hit" x="349.3" y="16" width="74.3" height="262" tabindex="0" data-tip="2018: Clemson won
+Our model gave them 35.1% (rank 2 of 4)
+Elo gave them 26.7%
+Random guess: 25.0%
+Model favorite: Alabama (53.6%)" data-x="386.5"/><text class="tick" x="460.8" y="295" text-anchor="middle">2019</text><text class="tick small" x="460.8" y="310" text-anchor="middle">LSU</text><line class="uni" x1="451.8" x2="469.8" y1="168.8" y2="168.8"/><line class="stem" x1="460.8" x2="460.8" y1="145.9" y2="102.4"/><circle class="dot s2" cx="460.8" cy="145.9" r="4.5"/><circle class="dot s1" cx="460.8" cy="102.4" r="5"/><rect class="hit" x="423.7" y="16" width="74.3" height="262" tabindex="0" data-tip="2019: LSU won
+Our model gave them 40.2% (rank 1 of 4)
+Elo gave them 30.3%
+Random guess: 25.0%
+Model favorite: LSU (40.2%)" data-x="460.8"/><text class="tick" x="535.2" y="295" text-anchor="middle">2020</text><text class="tick small" x="535.2" y="310" text-anchor="middle">Alabama</text><line class="uni" x1="526.2" x2="544.2" y1="168.8" y2="168.8"/><line class="stem" x1="535.2" x2="535.2" y1="106.3" y2="36.7"/><circle class="dot s2" cx="535.2" cy="106.3" r="4.5"/><circle class="dot s1" cx="535.2" cy="36.7" r="5"/><rect class="hit" x="498.0" y="16" width="74.3" height="262" tabindex="0" data-tip="2020: Alabama won
+Our model gave them 55.3% (rank 1 of 4)
+Elo gave them 39.3%
+Random guess: 25.0%
+Model favorite: Alabama (55.3%)" data-x="535.2"/><text class="tick" x="609.5" y="295" text-anchor="middle">2021</text><text class="tick small" x="609.5" y="310" text-anchor="middle">Georgia</text><line class="uni" x1="600.5" x2="618.5" y1="168.8" y2="168.8"/><line class="stem" x1="609.5" x2="609.5" y1="187.6" y2="69.9"/><circle class="dot s2" cx="609.5" cy="187.6" r="4.5"/><circle class="dot s1" cx="609.5" cy="69.9" r="5"/><rect class="hit" x="572.3" y="16" width="74.3" height="262" tabindex="0" data-tip="2021: Georgia won
+Our model gave them 47.7% (rank 1 of 4)
+Elo gave them 20.7%
+Random guess: 25.0%
+Model favorite: Georgia (47.7%)" data-x="609.5"/><text class="tick" x="683.8" y="295" text-anchor="middle">2022</text><text class="tick small" x="683.8" y="310" text-anchor="middle">Georgia</text><line class="uni" x1="674.8" x2="692.8" y1="168.8" y2="168.8"/><line class="stem" x1="683.8" x2="683.8" y1="76.0" y2="105.7"/><circle class="dot s2" cx="683.8" cy="76.0" r="4.5"/><circle class="dot s1" cx="683.8" cy="105.7" r="5"/><rect class="hit" x="646.7" y="16" width="74.3" height="262" tabindex="0" data-tip="2022: Georgia won
+Our model gave them 39.5% (rank 1 of 4)
+Elo gave them 46.2%
+Random guess: 25.0%
+Model favorite: Georgia (39.5%)" data-x="683.8"/><text class="tick" x="758.2" y="295" text-anchor="middle">2023</text><text class="tick small" x="758.2" y="310" text-anchor="middle">Michigan</text><line class="uni" x1="749.2" x2="767.2" y1="168.8" y2="168.8"/><line class="stem" x1="758.2" x2="758.2" y1="117.3" y2="109.7"/><circle class="dot s2" cx="758.2" cy="117.3" r="4.5"/><circle class="dot s1" cx="758.2" cy="109.7" r="5"/><rect class="hit" x="721.0" y="16" width="74.3" height="262" tabindex="0" data-tip="2023: Michigan won
+Our model gave them 38.5% (rank 1 of 4)
+Elo gave them 36.8%
+Random guess: 25.0%
+Model favorite: Michigan (38.5%)" data-x="758.2"/><text class="tick" x="832.5" y="295" text-anchor="middle">2024</text><text class="tick small" x="832.5" y="310" text-anchor="middle">Ohio State</text><line class="uni" x1="823.5" x2="841.5" y1="241.6" y2="241.6"/><line class="stem" x1="832.5" x2="832.5" y1="250.5" y2="221.1"/><circle class="dot s2" cx="832.5" cy="250.5" r="4.5"/><circle class="dot s1" cx="832.5" cy="221.1" r="5"/><rect class="hit" x="795.3" y="16" width="74.3" height="262" tabindex="0" data-tip="2024: Ohio State won
+Our model gave them 13.0% (rank 5 of 12)
+Elo gave them 6.3%
+Random guess: 8.3%
+Model favorite: Oregon (21.1%)" data-x="832.5"/><text class="tick" x="906.8" y="295" text-anchor="middle">2025</text><text class="tick small" x="906.8" y="310" text-anchor="middle">Indiana</text><line class="uni" x1="897.8" x2="915.8" y1="241.6" y2="241.6"/><line class="stem" x1="906.8" x2="906.8" y1="202.1" y2="214.7"/><circle class="dot s2" cx="906.8" cy="202.1" r="4.5"/><circle class="dot s1" cx="906.8" cy="214.7" r="5"/><rect class="hit" x="869.7" y="16" width="74.3" height="262" tabindex="0" data-tip="2025: Indiana won
+Our model gave them 14.5% (rank 2 of 12)
+Elo gave them 17.4%
+Random guess: 8.3%
+Model favorite: Ohio State (29.3%)" data-x="906.8"/><line class="crosshair" x1="0" x2="0" y1="16" y2="278" visibility="hidden"/></svg></div><details class="tv"><summary>Table view: champion backtest</summary><div class="tbl-wrap"><table><thead><tr><th scope="col" class="">Season</th><th scope="col" class="">Champion</th><th scope="col" class="num">Field</th><th scope="col" class="num">Model gave champ</th><th scope="col" class="num">Champ rank</th><th scope="col" class="num">Elo gave champ</th><th scope="col" class="">Model favorite</th><th scope="col" class="num">Favorite odds</th></tr></thead><tbody><tr><td class="">2014</td><td class="">Ohio State</td><td class="num">4</td><td class="num">19.1%</td><td class="num">3</td><td class="num">18.2%</td><td class="">Alabama</td><td class="num">36.3%</td></tr><tr><td class="">2015</td><td class="">Alabama</td><td class="num">4</td><td class="num">42.6%</td><td class="num">1</td><td class="num">44.7%</td><td class="">Alabama</td><td class="num">42.6%</td></tr><tr><td class="">2016</td><td class="">Clemson</td><td class="num">4</td><td class="num">20.0%</td><td class="num">2</td><td class="num">14.3%</td><td class="">Alabama</td><td class="num">50.0%</td></tr><tr><td class="">2017</td><td class="">Alabama</td><td class="num">4</td><td class="num">42.0%</td><td class="num">1</td><td class="num">26.9%</td><td class="">Alabama</td><td class="num">42.0%</td></tr><tr><td class="">2018</td><td class="">Clemson</td><td class="num">4</td><td class="num">35.1%</td><td class="num">2</td><td class="num">26.7%</td><td class="">Alabama</td><td class="num">53.6%</td></tr><tr><td class="">2019</td><td class="">LSU</td><td class="num">4</td><td class="num">40.2%</td><td class="num">1</td><td class="num">30.3%</td><td class="">LSU</td><td class="num">40.2%</td></tr><tr><td class="">2020</td><td class="">Alabama</td><td class="num">4</td><td class="num">55.3%</td><td class="num">1</td><td class="num">39.3%</td><td class="">Alabama</td><td class="num">55.3%</td></tr><tr><td class="">2021</td><td class="">Georgia</td><td class="num">4</td><td class="num">47.7%</td><td class="num">1</td><td class="num">20.7%</td><td class="">Georgia</td><td class="num">47.7%</td></tr><tr><td class="">2022</td><td class="">Georgia</td><td class="num">4</td><td class="num">39.5%</td><td class="num">1</td><td class="num">46.2%</td><td class="">Georgia</td><td class="num">39.5%</td></tr><tr><td class="">2023</td><td class="">Michigan</td><td class="num">4</td><td class="num">38.5%</td><td class="num">1</td><td class="num">36.8%</td><td class="">Michigan</td><td class="num">38.5%</td></tr><tr><td class="">2024</td><td class="">Ohio State</td><td class="num">12</td><td class="num">13.0%</td><td class="num">5</td><td class="num">6.3%</td><td class="">Oregon</td><td class="num">21.1%</td></tr><tr><td class="">2025</td><td class="">Indiana</td><td class="num">12</td><td class="num">14.5%</td><td class="num">2</td><td class="num">17.4%</td><td class="">Ohio State</td><td class="num">29.3%</td></tr></tbody></table></div></details></div>
+</section>
+
+<section aria-labelledby="h-2026">
+  <span class="eyebrow">Live forecast · 2026 season · title game January 2027</span>
+  <h2 id="h-2026">Who wins the national title in January 2027?</h2>
+  <p>10,000 simulated seasons from today's data: the remaining 444 games, conference title games, a committee
+  emulator (it picks 3.6 of the real top 4 and 11.1 of the real top 12 in seasons it never saw),
+  then the 12-team playoff under the 2026 rules.</p>
+  <div class="two">
+    <div class="card"><h3>Title odds, top 12</h3><div class="bars"><div class="bar-row is-win" tabindex="0" data-tip="Georgia (SEC, 6-0)
+Title: 24.5%
+Make playoff: 98.8%
+Win conference: 64.3%
+Top-4 seed (bye): 83.0%
+Reach final: 40.1%
+Expected wins: 11.9">
+        <span class="bar-name">Georgia</span>
+        <span class="bar-track"><span class="bar" style="width:83.33%"></span><span class="bar-val num" style="left:83.33%">24.5%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Ohio State (Big Ten, 5-1)
+Title: 17.5%
+Make playoff: 85.6%
+Win conference: 42.1%
+Top-4 seed (bye): 43.8%
+Reach final: 30.1%
+Expected wins: 10.1">
+        <span class="bar-name">Ohio State</span>
+        <span class="bar-track"><span class="bar" style="width:59.60%"></span><span class="bar-val num" style="left:59.60%">17.5%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Notre Dame (FBS Independents, 6-0)
+Title: 14.5%
+Make playoff: 87.3%
+Win conference: 0.0%
+Top-4 seed (bye): 24.8%
+Reach final: 25.3%
+Expected wins: 11.2">
+        <span class="bar-name">Notre Dame</span>
+        <span class="bar-track"><span class="bar" style="width:49.24%"></span><span class="bar-val num" style="left:49.24%">14.5%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Miami (ACC, 5-0)
+Title: 11.1%
+Make playoff: 94.6%
+Win conference: 81.0%
+Top-4 seed (bye): 52.5%
+Reach final: 23.5%
+Expected wins: 11.7">
+        <span class="bar-name">Miami</span>
+        <span class="bar-track"><span class="bar" style="width:37.94%"></span><span class="bar-val num" style="left:37.94%">11.1%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Indiana (Big Ten, 6-0)
+Title: 7.8%
+Make playoff: 91.4%
+Win conference: 38.9%
+Top-4 seed (bye): 49.7%
+Reach final: 17.5%
+Expected wins: 10.8">
+        <span class="bar-name">Indiana</span>
+        <span class="bar-track"><span class="bar" style="width:26.73%"></span><span class="bar-val num" style="left:26.73%">7.8%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Utah (Big 12, 5-0)
+Title: 6.8%
+Make playoff: 88.5%
+Win conference: 43.4%
+Top-4 seed (bye): 47.5%
+Reach final: 15.8%
+Expected wins: 11.1">
+        <span class="bar-name">Utah</span>
+        <span class="bar-track"><span class="bar" style="width:23.23%"></span><span class="bar-val num" style="left:23.23%">6.8%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Alabama (SEC, 5-1)
+Title: 6.5%
+Make playoff: 84.8%
+Win conference: 22.0%
+Top-4 seed (bye): 30.3%
+Reach final: 14.6%
+Expected wins: 9.9">
+        <span class="bar-name">Alabama</span>
+        <span class="bar-track"><span class="bar" style="width:22.10%"></span><span class="bar-val num" style="left:22.10%">6.5%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Texas (SEC, 4-1)
+Title: 3.9%
+Make playoff: 69.9%
+Win conference: 7.0%
+Top-4 seed (bye): 18.5%
+Reach final: 9.7%
+Expected wins: 9.1">
+        <span class="bar-name">Texas</span>
+        <span class="bar-track"><span class="bar" style="width:13.25%"></span><span class="bar-val num" style="left:13.25%">3.9%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="BYU (Big 12, 5-0)
+Title: 2.1%
+Make playoff: 61.4%
+Win conference: 21.7%
+Top-4 seed (bye): 15.4%
+Reach final: 5.9%
+Expected wins: 10.1">
+        <span class="bar-name">BYU</span>
+        <span class="bar-track"><span class="bar" style="width:7.25%"></span><span class="bar-val num" style="left:7.25%">2.1%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Texas Tech (Big 12, 5-0)
+Title: 1.2%
+Make playoff: 71.1%
+Win conference: 27.0%
+Top-4 seed (bye): 20.1%
+Reach final: 4.4%
+Expected wins: 10.9">
+        <span class="bar-name">Texas Tech</span>
+        <span class="bar-track"><span class="bar" style="width:4.26%"></span><span class="bar-val num" style="left:4.26%">1.2%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="Oregon (Big Ten, 3-2)
+Title: 1.2%
+Make playoff: 20.7%
+Win conference: 4.0%
+Top-4 seed (bye): 1.4%
+Reach final: 2.9%
+Expected wins: 8.2">
+        <span class="bar-name">Oregon</span>
+        <span class="bar-track"><span class="bar" style="width:4.15%"></span><span class="bar-val num" style="left:4.15%">1.2%</span></span>
+      </div><div class="bar-row " tabindex="0" data-tip="USC (Big Ten, 6-1)
+Title: 0.5%
+Make playoff: 28.2%
+Win conference: 4.1%
+Top-4 seed (bye): 2.3%
+Reach final: 1.7%
+Expected wins: 8.7">
+        <span class="bar-name">USC</span>
+        <span class="bar-track"><span class="bar" style="width:1.74%"></span><span class="bar-val num" style="left:1.74%">0.5%</span></span>
+      </div></div><details class="tv"><summary>Table view: top 25 title odds</summary><div class="tbl-wrap"><table><thead><tr><th scope="col" class="">Team</th><th scope="col" class="">Conference</th><th scope="col" class="">Record</th><th scope="col" class="num">Exp. wins</th><th scope="col" class="num">Conf. title</th><th scope="col" class="num">Playoff</th><th scope="col" class="num">Bye (top 4)</th><th scope="col" class="num">Semifinal</th><th scope="col" class="num">Final</th><th scope="col" class="num">Title</th></tr></thead><tbody><tr><td class="">Georgia</td><td class="">SEC</td><td class="">6-0</td><td class="num">11.9</td><td class="num">64.3%</td><td class="num">98.8%</td><td class="num">83.0%</td><td class="num">64.2%</td><td class="num">40.1%</td><td class="num">24.5%</td></tr><tr><td class="">Ohio State</td><td class="">Big Ten</td><td class="">5-1</td><td class="num">10.1</td><td class="num">42.1%</td><td class="num">85.6%</td><td class="num">43.8%</td><td class="num">48.4%</td><td class="num">30.1%</td><td class="num">17.5%</td></tr><tr><td class="">Notre Dame</td><td class="">FBS Independents</td><td class="">6-0</td><td class="num">11.2</td><td class="num">0.0%</td><td class="num">87.3%</td><td class="num">24.8%</td><td class="num">44.0%</td><td class="num">25.3%</td><td class="num">14.5%</td></tr><tr><td class="">Miami</td><td class="">ACC</td><td class="">5-0</td><td class="num">11.7</td><td class="num">81.0%</td><td class="num">94.6%</td><td class="num">52.5%</td><td class="num">45.4%</td><td class="num">23.5%</td><td class="num">11.1%</td></tr><tr><td class="">Indiana</td><td class="">Big Ten</td><td class="">6-0</td><td class="num">10.8</td><td class="num">38.9%</td><td class="num">91.4%</td><td class="num">49.7%</td><td class="num">38.6%</td><td class="num">17.5%</td><td class="num">7.8%</td></tr><tr><td class="">Utah</td><td class="">Big 12</td><td class="">5-0</td><td class="num">11.1</td><td class="num">43.4%</td><td class="num">88.5%</td><td class="num">47.5%</td><td class="num">36.3%</td><td class="num">15.8%</td><td class="num">6.8%</td></tr><tr><td class="">Alabama</td><td class="">SEC</td><td class="">5-1</td><td class="num">9.9</td><td class="num">22.0%</td><td class="num">84.8%</td><td class="num">30.3%</td><td class="num">32.1%</td><td class="num">14.6%</td><td class="num">6.5%</td></tr><tr><td class="">Texas</td><td class="">SEC</td><td class="">4-1</td><td class="num">9.1</td><td class="num">7.0%</td><td class="num">69.9%</td><td class="num">18.5%</td><td class="num">22.4%</td><td class="num">9.7%</td><td class="num">3.9%</td></tr><tr><td class="">BYU</td><td class="">Big 12</td><td class="">5-0</td><td class="num">10.1</td><td class="num">21.7%</td><td class="num">61.4%</td><td class="num">15.4%</td><td class="num">15.7%</td><td class="num">5.9%</td><td class="num">2.1%</td></tr><tr><td class="">Texas Tech</td><td class="">Big 12</td><td class="">5-0</td><td class="num">10.9</td><td class="num">27.0%</td><td class="num">71.1%</td><td class="num">20.1%</td><td class="num">15.2%</td><td class="num">4.4%</td><td class="num">1.2%</td></tr><tr><td class="">Oregon</td><td class="">Big Ten</td><td class="">3-2</td><td class="num">8.2</td><td class="num">4.0%</td><td class="num">20.7%</td><td class="num">1.4%</td><td class="num">5.8%</td><td class="num">2.9%</td><td class="num">1.2%</td></tr><tr><td class="">USC</td><td class="">Big Ten</td><td class="">6-1</td><td class="num">8.7</td><td class="num">4.1%</td><td class="num">28.2%</td><td class="num">2.3%</td><td class="num">4.7%</td><td class="num">1.7%</td><td class="num">0.5%</td></tr><tr><td class="">Oklahoma</td><td class="">SEC</td><td class="">3-2</td><td class="num">7.6</td><td class="num">1.7%</td><td class="num">16.6%</td><td class="num">0.6%</td><td class="num">2.9%</td><td class="num">1.2%</td><td class="num">0.4%</td></tr><tr><td class="">Ole Miss</td><td class="">SEC</td><td class="">4-1</td><td class="num">8.3</td><td class="num">2.0%</td><td class="num">22.2%</td><td class="num">1.6%</td><td class="num">4.0%</td><td class="num">1.4%</td><td class="num">0.4%</td></tr><tr><td class="">Houston</td><td class="">Big 12</td><td class="">5-1</td><td class="num">9.4</td><td class="num">4.0%</td><td class="num">23.3%</td><td class="num">1.1%</td><td class="num">2.6%</td><td class="num">0.8%</td><td class="num">0.3%</td></tr><tr><td class="">LSU</td><td class="">SEC</td><td class="">4-2</td><td class="num">7.5</td><td class="num">0.5%</td><td class="num">8.7%</td><td class="num">0.1%</td><td class="num">1.3%</td><td class="num">0.5%</td><td class="num">0.2%</td></tr><tr><td class="">Missouri</td><td class="">SEC</td><td class="">5-1</td><td class="num">8.0</td><td class="num">0.9%</td><td class="num">17.1%</td><td class="num">0.9%</td><td class="num">2.0%</td><td class="num">0.6%</td><td class="num">0.2%</td></tr><tr><td class="">Iowa</td><td class="">Big Ten</td><td class="">5-1</td><td class="num">9.1</td><td class="num">4.6%</td><td class="num">26.0%</td><td class="num">1.7%</td><td class="num">2.8%</td><td class="num">0.8%</td><td class="num">0.2%</td></tr><tr><td class="">Tennessee</td><td class="">SEC</td><td class="">5-1</td><td class="num">8.3</td><td class="num">1.5%</td><td class="num">18.2%</td><td class="num">1.0%</td><td class="num">2.4%</td><td class="num">0.8%</td><td class="num">0.2%</td></tr><tr><td class="">Arizona</td><td class="">Big 12</td><td class="">5-1</td><td class="num">8.9</td><td class="num">3.3%</td><td class="num">19.3%</td><td class="num">1.5%</td><td class="num">2.5%</td><td class="num">0.8%</td><td class="num">0.2%</td></tr><tr><td class="">UCLA</td><td class="">Big Ten</td><td class="">5-0</td><td class="num">9.5</td><td class="num">4.4%</td><td class="num">22.4%</td><td class="num">1.6%</td><td class="num">1.8%</td><td class="num">0.4%</td><td class="num">0.1%</td></tr><tr><td class="">Michigan</td><td class="">Big Ten</td><td class="">3-2</td><td class="num">7.0</td><td class="num">0.2%</td><td class="num">2.0%</td><td class="num">0.0%</td><td class="num">0.3%</td><td class="num">0.1%</td><td class="num">0.1%</td></tr><tr><td class="">Nebraska</td><td class="">Big Ten</td><td class="">5-1</td><td class="num">7.8</td><td class="num">0.8%</td><td class="num">5.5%</td><td class="num">0.3%</td><td class="num">0.6%</td><td class="num">0.2%</td><td class="num">0.1%</td></tr><tr><td class="">Boise State</td><td class="">Pac-12</td><td class="">5-1</td><td class="num">10.5</td><td class="num">66.5%</td><td class="num">30.3%</td><td class="num">0.0%</td><td class="num">0.8%</td><td class="num">0.2%</td><td class="num">0.0%</td></tr><tr><td class="">James Madison</td><td class="">Sun Belt</td><td class="">6-0</td><td class="num">11.8</td><td class="num">76.1%</td><td class="num">58.3%</td><td class="num">0.0%</td><td class="num">1.0%</td><td class="num">0.2%</td><td class="num">0.0%</td></tr></tbody></table></div></details></div>
+    <div class="card">
+      <h3>Michigan, as of today</h3>
+      <p>3-2 so far. Expected regular-season finish: 7.0 wins.
+      Playoff chance 2.0%; title chance 0.06%.</p>
+      <div class="tbl-wrap"><table><thead><tr><th class="num">Wk</th><th>Game</th><th class="num">Line</th><th class="num">Win %</th><th class="hide-sm">Pick</th></tr></thead>
+      <tbody><tr><td class="num">7</td><td class="wrap">vs Penn State</td><td class="num">MICH -12.7</td><td class="num">79%</td><td class="hide-sm"><span class="pill pill-w">Michigan</span></td></tr><tr><td class="num">8</td><td class="wrap">vs Indiana</td><td class="num">MICH +6.3</td><td class="num">35%</td><td class="hide-sm"><span class="pill pill-l">Indiana</span></td></tr><tr><td class="num">9</td><td class="wrap">at Rutgers</td><td class="num">MICH -17.4</td><td class="num">86%</td><td class="hide-sm"><span class="pill pill-w">Michigan</span></td></tr><tr><td class="num">10</td><td class="wrap">vs Michigan State</td><td class="num">MICH -18.3</td><td class="num">87%</td><td class="hide-sm"><span class="pill pill-w">Michigan</span></td></tr><tr><td class="num">11</td><td class="wrap">at Oregon</td><td class="num">MICH +10.9</td><td class="num">25%</td><td class="hide-sm"><span class="pill pill-l">Oregon</span></td></tr><tr><td class="num">12</td><td class="wrap">vs UCLA</td><td class="num">MICH -8.4</td><td class="num">70%</td><td class="hide-sm"><span class="pill pill-w">Michigan</span></td></tr><tr><td class="num">13</td><td class="wrap">at Ohio State</td><td class="num">MICH +17.7</td><td class="num">13%</td><td class="hide-sm"><span class="pill pill-l">Ohio State</span></td></tr></tbody></table></div>
+      <p class="note">Michigan vs Michigan State (week 10): Michigan by 18.3,
+      87% to win.</p>
+    </div>
+  </div>
+  <p class="note">Watch-out: the model weighs recruiting talent heavily, so it rates high-talent teams (Georgia, Ohio State) above
+  teams whose results run ahead of their recruiting (Indiana has the best results-based rating but is a 6-point underdog to Georgia on a neutral field).
+  2025 Indiana won the title as exactly that kind of team. Simulation noise is about ±0.5 percentage points.</p>
+</section>
+
+<section aria-labelledby="h-method">
+  <span class="eyebrow">How we tested</span>
+  <h2 id="h-method">The method, and its limits</h2>
+  <div class="two">
+    <div class="card">
+      <ul class="clean">
+        <li><strong>Time machine, never a shuffle.</strong> Tune on 2010–2013 only, then train on all earlier seasons and predict the next one, 2014 through 2025.</li>
+        <li><strong>No peeking.</strong> Every clue is computed from games before kickoff. An automated "time-travel" test erases future scores and checks that nothing changes.</li>
+        <li><strong>Both sides.</strong> Each game is predicted as A-vs-B and B-vs-A and averaged, so the two chances always add to 100%.</li>
+        <li><strong>Fair fights.</strong> Every algorithm sees the same games. Gaps get 95% ranges from a game-week bootstrap and Holm-corrected head-to-head tests.</li>
+        <li><strong>Clean data.</strong> 0 duplicates, 0 impossible ties, and 22 of 22 champions match real history.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Known limits</h3>
+      <ul class="clean">
+        <li>No injuries, quarterback changes, weather or betting data go into the model.</li>
+        <li>Bowls and playoff games are close to coin flips for every model (opt-outs and motivation).</li>
+        <li>The committee is people, not a formula; the emulator copies their past habits.</li>
+        <li>The 2026 forecast freezes today's ratings; uncertainty comes from simulated luck and a ±3.1-point "true strength" wobble per team.</li>
+      </ul>
+      <p class="note">Committee emulator weights (standardized): wins +3.6, losses -3.2, rating +2.1, sos +2.0, conf champ -0.0, is power +1.2.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Glossary</h3>
+    <dl class="gloss">
+      <dt>Log loss</dt><dd>A penalty score for predictions. Being confident and wrong costs a lot. Lower is better; a coin flip scores 0.693.</dd>
+      <dt>Brier score</dt><dd>The average squared gap between the chance we gave and what happened (1 or 0). Lower is better.</dd>
+      <dt>Recall</dt><dd>Of the games a side really won, the share we predicted correctly.</dd>
+      <dt>Calibration</dt><dd>Whether our percentages mean what they say: 70% should come true about 70% of the time.</dd>
+      <dt>Walk-forward test</dt><dd>Train on the past, predict the next season, step forward a year, repeat.</dd>
+      <dt>Ridge regression</dt><dd>A straight-line formula with a "seat belt" that stops it from trusting any one clue too much.</dd>
+    </dl>
+  </div>
+</section>
+
+<footer>
+  <span>Data: SportsDataverse open data (cfbfastR-data and sportsdataverse-data on GitHub), originally from CollegeFootballData.com and ESPN.
+  Betting lines are a benchmark only. Model: CFB Predictor v0.1 (margin_ridge), trained on 17,602 games (2005–2025).</span>
+  <span>Re-create everything from the project folder: <code>python -m cfb.pipeline</code>.</span>
+</footer>
+</div>
+<div id="tip" hidden></div>
+<script>
+(() => {
+  const tip = document.getElementById("tip");
+  const show = (el, x, y) => {
+    const lines = (el.getAttribute("data-tip") || "").split("\n");
+    tip.replaceChildren();
+    lines.forEach((t, i) => { const d = document.createElement("div"); d.textContent = t; if (i === 0) d.className = "lead"; tip.appendChild(d); });
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    let left = x + 14, top = y + 14;
+    if (left + r.width > window.innerWidth - 8) left = x - r.width - 14;
+    if (top + r.height > window.innerHeight - 8) top = y - r.height - 14;
+    tip.style.left = Math.max(8, left) + "px"; tip.style.top = Math.max(8, top) + "px";
+    const svg = el.ownerSVGElement; const xh = svg && svg.querySelector(".crosshair");
+    if (xh && el.dataset.x) { xh.setAttribute("x1", el.dataset.x); xh.setAttribute("x2", el.dataset.x); xh.setAttribute("visibility", "visible"); }
+  };
+  const hide = (el) => { tip.hidden = true; const svg = el.ownerSVGElement; const xh = svg && svg.querySelector(".crosshair"); if (xh) xh.setAttribute("visibility", "hidden"); };
+  document.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("pointermove", e => show(el, e.clientX, e.clientY));
+    el.addEventListener("pointerleave", () => hide(el));
+    el.addEventListener("focus", () => { const r = el.getBoundingClientRect(); show(el, r.left + r.width / 2, r.top); });
+    el.addEventListener("blur", () => hide(el));
+  });
+})();
+</script>
+
+</body>
+</html>

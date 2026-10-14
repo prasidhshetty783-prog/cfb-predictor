@@ -1,0 +1,11 @@
+{
+ "seasons": 12,
+ "avg_p_champion_model": 0.33958749999999993,
+ "avg_p_champion_elo": 0.2731708333333333,
+ "avg_p_champion_uniform": 0.22222222222222224,
+ "log_score_model": 1.1774057901271697,
+ "log_score_elo": 1.4230130337390257,
+ "log_score_uniform": 1.5693964092312422,
+ "favorite_won": 7,
+ "champion_in_model_top2": 10
+}

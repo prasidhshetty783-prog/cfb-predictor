@@ -1,0 +1,41 @@
+{
+ "generated_at": "2026-10-14T15:19:38+00:00",
+ "season": 2026,
+ "n_sims": 10000,
+ "seed": 2026,
+ "games_completed": 448,
+ "games_simulated": 444,
+ "data_through": "2026-10-11 02:30:00+00:00",
+ "rating_uncertainty_tau_points": 3.124503631267843,
+ "game_noise_sigma_points": 15.410141033005713,
+ "committee_weights": {
+  "wins": 3.613,
+  "losses": -3.157,
+  "rating": 2.072,
+  "sos": 2.018,
+  "conf_champ": -0.037,
+  "is_power": 1.185
+ },
+ "assumptions": [
+  "2026 CFP: 12 teams; ACC/Big Ten/Big 12/SEC champions + highest-ranked team from the other six conferences + Notre Dame if top 12; seeds follow the ranking.",
+  "Conference title game = top two by conference record (ties: overall record, then strength). Sun Belt = East winner vs West winner.",
+  "Pac-12 flex games use the league's projected matchups and don't count in standings.",
+  "North Dakota State and Sacramento State (first FBS season) are ineligible for conference titles and the CFP.",
+  "Team states are frozen at today's data; uncertainty enters through tau and game noise."
+ ],
+ "most_common_field_frequency": 0.008,
+ "most_common_field": [
+  "Georgia",
+  "Indiana",
+  "Notre Dame",
+  "Ohio State",
+  "Houston",
+  "Texas",
+  "BYU",
+  "Utah",
+  "James Madison",
+  "Alabama",
+  "Miami",
+  "Texas Tech"
+ ]
+}

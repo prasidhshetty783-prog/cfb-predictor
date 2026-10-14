@@ -1,0 +1,26 @@
+{
+ "pts_target": {
+  "lam": 2.0,
+  "prev_weight": 0.35,
+  "cap": 35.0,
+  "corr_with_margin": 0.6711
+ },
+ "ypp_target": {
+  "lam": 2.0,
+  "prev_weight": 0.35,
+  "cap": 5.0,
+  "corr_with_margin": 0.6448
+ },
+ "pw_target": {
+  "lam": 2.0,
+  "prev_weight": 0.35,
+  "cap": null,
+  "corr_with_margin": 0.6365
+ },
+ "sr_target": {
+  "lam": 2.0,
+  "prev_weight": 0.35,
+  "cap": null,
+  "corr_with_margin": 0.6175
+ }
+}
