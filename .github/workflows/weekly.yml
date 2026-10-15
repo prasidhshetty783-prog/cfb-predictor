@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -41,7 +41,7 @@ jobs:
       # Raw downloads (~115 MB) are not stored in git. Keep them between runs so only the
       # live season is downloaded each week.
       - name: Restore raw data
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: data/raw
           key: raw-${{ github.run_id }}
