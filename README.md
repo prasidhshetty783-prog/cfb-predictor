@@ -13,6 +13,8 @@ Then it plays out the rest of the season 10,000 times to estimate who will lift 
 **Live dashboard:** every 2026 pick, the season scorecard and the title odds, updated every Monday.
 *(Link goes here once it is deployed on Streamlit Community Cloud. See [the dashboard](#the-dashboard-and-the-weekly-auto-update).)*
 
+![The CFB Predictor dashboard: this week's games with the pick, win chance and top reasons for each one](docs/images/dashboard-games.png)
+
 ---
 
 ## Table of contents
@@ -267,6 +269,24 @@ The dashboard (`app/streamlit_app.py`) shows every game of the season with the p
 chance and the top reasons, plus the season record, an "are the percentages honest?" chart and
 the title odds.
 
+| Finished weeks: every pick gets ✓ or ✗ | On a phone |
+|---|---|
+| ![A finished week: each card shows the final score and whether the pick was right](docs/images/dashboard-past-week.png) | <img src="docs/images/dashboard-phone.png" alt="The dashboard on a phone screen" width="240"> |
+
+| Season record and honesty check | Title odds |
+|---|---|
+| ![Season record: 83% of picks right, 95% when 80%+ sure, plus a week-by-week chart](docs/images/dashboard-record.png) | ![Title odds: Georgia 24.5%, Ohio State 17.5%, Notre Dame 14.5%](docs/images/dashboard-title-odds.png) |
+
+*Screenshots from October 14, 2026 (before week 7). The live page updates every Monday.*
+
+**How to read a game card:**
+- The dot marks the team the model picks. The bar shows its win chance.
+- "by 6" is the predicted winning margin in points.
+- "Why" lists the three clues that pushed hardest toward the pick, in points
+  (e.g. "Team ratings +3.0" means power ratings alone favor that team by 3 points).
+- **Find a team** shows every game for that team this season. **Power 4 games** hides
+  games between smaller schools.
+
 **It never runs the model.** It only reads small files in `reports/app/` that the weekly
 pipeline writes. That makes it fast and free to host, and it keeps the record honest:
 
@@ -305,6 +325,7 @@ src/cfb/
   report/     HTML report, Obsidian notes, dashboard data (app_data.py)
   pipeline.py one command that runs everything in order
 app/          the public Streamlit dashboard
+docs/images/  dashboard screenshots used in this README
 .github/      the Monday auto-update job
 tests/        leakage, betting-line and simulator tests
 models/       final_model.joblib + model_card.json
