@@ -10,6 +10,9 @@ Then it plays out the rest of the season 10,000 times to estimate who will lift 
 > says it is 80%+ sure, it is right **91.7%** of the time. Its percentages are honest: when it says
 > "70%", that team really wins about 70% of the time.
 
+**Live dashboard:** every 2026 pick, the season scorecard and the title odds, updated every Monday.
+*(Link goes here once it is deployed on Streamlit Community Cloud. See [the dashboard](#the-dashboard-and-the-weekly-auto-update).)*
+
 ---
 
 ## Table of contents
@@ -258,6 +261,38 @@ python -m cfb.pipeline --download   # first time: downloads ~115 MB of data, the
 The raw data isn't stored in this repository (it's large and anyone can re-download it), so run
 `--download` once after cloning.
 
+### The dashboard and the weekly auto-update
+
+The dashboard (`app/streamlit_app.py`) shows every game of the season with the pick, the win
+chance and the top reasons, plus the season record, an "are the percentages honest?" chart and
+the title odds.
+
+**It never runs the model.** It only reads small files in `reports/app/` that the weekly
+pipeline writes. That makes it fast and free to host, and it keeps the record honest:
+
+- **Finished games:** the pick saved before kickoff, with ✓ or ✗. These never change.
+- **This week:** the latest pick. It can still move until kickoff, then it locks.
+- **Later weeks:** an "early look". Each week of distance costs a little under 1 point of accuracy
+  (75% for this week's games, about 71% five weeks out), and the dashboard says so.
+
+Picks for weeks 1-6 of 2026 were re-created after the fact (tracking started in week 7), using only
+information known before each game. The dashboard labels them that way.
+
+**How it updates by itself:** a GitHub Actions job (`.github/workflows/weekly.yml`) runs every
+Monday. It downloads the weekend's results, runs `python -m cfb.pipeline --weekly`, and commits
+the new files. Streamlit Community Cloud sees the new commit and refreshes the dashboard.
+Team ratings update every week; the formula itself is retrained once a year, after the season.
+
+Run the dashboard on your own computer:
+
+```bash
+pip install -r app/requirements.txt
+streamlit run app/streamlit_app.py
+```
+
+Put it online for free: sign in at [share.streamlit.io](https://share.streamlit.io) with GitHub →
+**Create app** → pick this repository, branch `main`, main file `app/streamlit_app.py` → **Deploy**.
+
 ## 12. Project map
 
 ```
@@ -267,8 +302,10 @@ src/cfb/
   eval/       the walk-forward contest, scores, significance tests
   models/     all 16 methods, the final model, the model card
   sim/        matchups, playoff bracket, committee stand-in, season simulator
-  report/     HTML report and Obsidian notes
+  report/     HTML report, Obsidian notes, dashboard data (app_data.py)
   pipeline.py one command that runs everything in order
+app/          the public Streamlit dashboard
+.github/      the Monday auto-update job
 tests/        leakage, betting-line and simulator tests
 models/       final_model.joblib + model_card.json
 reports/      model_report.html, contest results, title odds, weekly picks

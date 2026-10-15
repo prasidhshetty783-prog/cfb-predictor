@@ -138,6 +138,7 @@ STEPS = [
     Step("predict", "Pick every remaining game", ALL, ["cfb.predict"]),
     Step("track", "Log both versions' picks before kickoff; score finished games (live scorecard)", ALL,
          ["cfb.track"]),
+    Step("app_data", "Write the small files the public dashboard reads (reports/app/)", ALL, ["cfb.report.app_data"]),
     Step("archive", "Save a dated copy of this week's picks and odds", {"weekly"}, func=archive_picks),
     Step("report", "Rebuild reports/model_report.html", ALL, ["cfb.report.build_report"]),
     Step("vault", "Refresh the auto notes in the Obsidian vault", ALL, ["cfb.report.vault_notes"]),

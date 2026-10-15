@@ -1,0 +1,13 @@
+{
+ "updated_utc": "2026-10-15T00:00:05Z",
+ "data_through_utc": "2026-10-11 02:30:00+00:00",
+ "season": 2026,
+ "next_week": 7,
+ "model": "margin_ridge",
+ "backtest": {
+  "accuracy": 0.7569183299585382,
+  "log_loss": 0.4821788225543931,
+  "sure_right": 0.9173838209982788,
+  "games": 10371
+ }
+}

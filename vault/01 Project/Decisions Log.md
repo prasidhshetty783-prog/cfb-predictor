@@ -64,3 +64,11 @@ Use `Templates/Decision.md` for new entries.
 ### D-012 · 2026-10-14 · No softening for far-off picks
 - **Why:** EXP-007: the tuning chose "no softening"; far-off percentages are already honest (within 0.6 points).
 - **Instead:** the dashboard labels later weeks as early looks and shows accuracy by weeks ahead.
+
+### D-013 · 2026-10-14 · Public dashboard reads files; it never runs the model
+- **What:** Streamlit dashboard (`app/streamlit_app.py`) on Streamlit Community Cloud. It reads
+  `reports/app/`, written by the `app_data` pipeline step. A GitHub Actions job runs the weekly
+  pipeline every Monday and commits the new files.
+- **Why:** past picks stay frozen (trust), the page is fast, and hosting is free. No "predict" button,
+  because re-running the model on demand could quietly change old picks.
+- **Trade-off:** updates once a week (or by hand from the Actions tab), not live during games.

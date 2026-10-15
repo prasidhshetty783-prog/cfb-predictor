@@ -1,6 +1,6 @@
 ---
 tags: [predictions, auto, tracking]
-generated: 2026-10-14 22:53 UTC
+generated: 2026-10-15 00:00 UTC
 ---
 # Live Scorecard (2026)
 
@@ -9,5 +9,5 @@ generated: 2026-10-14 22:53 UTC
 No tracked games have been played yet. Picks start counting from the first games after tracking began (2026-10-14). Check back after the next weekly run.
 
 
-Games picked and waiting to be played: 438. All picks: `reports/tracking/picks_2026.csv`.
+Games picked and waiting to be played: 436. All picks: `reports/tracking/picks_2026.csv`.
 Decision rule: after the bowls, re-test the challenger with 2026 added ([[EXP-006 Fading Position Talent]]).

@@ -31,6 +31,7 @@ from cfb.models.zoo import CHALLENGER
 OUT = REPORTS / "tracking"
 PICKS = OUT / f"picks_{CURRENT_SEASON}.csv"
 SCORE = OUT / f"scorecard_{CURRENT_SEASON}.csv"
+HISTORY = OUT / f"pick_history_{CURRENT_SEASON}.csv"
 CH_PATH = MODELS_DIR / "challenger_model.joblib"
 LABEL = {"current": "Current model (official)", "challenger": "Challenger (faded position talent)"}
 
@@ -72,6 +73,9 @@ def log_picks(table: pd.DataFrame, now: pd.Timestamp) -> pd.DataFrame:
             "model": name, "home_win_prob": p, "home_margin": m.predict_margin(future),
             "logged_at": now.isoformat(timespec="seconds")}))
     fresh = pd.concat(rows, ignore_index=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    hist = fresh[["game_id", "model", "home_win_prob", "logged_at"]]          # every update, for "pick moved"
+    hist.to_csv(HISTORY, mode="a", header=not HISTORY.exists(), index=False)
     if PICKS.exists():
         old = pd.read_csv(PICKS)
         frozen = old[pd.to_datetime(old["start_date"], utc=True) <= now]      # kicked off: never change

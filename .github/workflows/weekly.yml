@@ -1,0 +1,66 @@
+# Weekly update: new results in -> new picks and title odds out -> dashboard refreshes itself.
+#
+# Plain-language version: every Monday morning GitHub borrows a computer for a few minutes,
+# downloads the weekend's results, re-runs the weekly pipeline (it never changes a pick for a
+# game that has already kicked off), and saves the new files back into this repository.
+# Streamlit Community Cloud sees the new commit and the public dashboard updates on its own.
+#
+# Run it by hand any time: GitHub -> Actions -> "Weekly update" -> "Run workflow".
+
+name: Weekly update
+
+on:
+  schedule:
+    - cron: "47 13 * * 1"     # Mondays 13:47 UTC (about 9:47 AM ET)
+  workflow_dispatch:
+
+permissions:
+  contents: write              # lets the job commit the refreshed files
+
+concurrency:
+  group: weekly-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          pip install -e .
+
+      # Raw downloads (~115 MB) are not stored in git. Keep them between runs so only the
+      # live season is downloaded each week.
+      - name: Restore raw data
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-${{ github.run_id }}
+          restore-keys: raw-
+
+      - name: Download any missing seasons (first run only does real work)
+        run: python -m cfb.data.download
+
+      - name: Weekly pipeline
+        run: python -m cfb.pipeline --weekly
+
+      - name: Save results
+        run: |
+          git config user.name "cfb-predictor bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports vault models data/interim data/processed
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "Weekly update $(date -u +%Y-%m-%d)"
+            git push
+          fi
