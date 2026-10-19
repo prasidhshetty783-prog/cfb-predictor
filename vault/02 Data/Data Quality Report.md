@@ -1,6 +1,6 @@
 ---
 tags: [data, audit]
-updated: 2026-10-15T00:12:19+00:00
+updated: 2026-10-19T19:31:01+00:00
 status: PASS
 ---
 # Data Quality Report
@@ -73,11 +73,11 @@ games with a betting line (benchmark only). `adv_stats_both` = both teams have a
 |     2023 |     910 |          792 |           42 |           0.63  |         1     |            1     |        0.992 |         1     |                1 |              0.985 |
 |     2024 |     919 |          798 |           46 |           0.632 |         1     |            1     |        0.993 |         1     |                1 |              0.993 |
 |     2025 |     934 |          808 |           46 |           0.646 |         1     |            1     |        0.993 |         1     |                1 |              0.985 |
-|     2026 |     448 |          329 |            0 |           0.717 |         1     |            1     |        0.993 |         1     |                1 |              0.986 |
+|     2026 |     510 |          388 |            0 |           0.7   |         1     |            1     |        0.993 |         1     |                1 |              0.986 |
 
 ## Live season (2026)
-- Completed games: 448 (through week 6, last game 2026-10-11 02:30:00+00:00)
-- Games still to play: 440
+- Completed games: 510 (through week 7, last game 2026-10-18 03:00:00+00:00)
+- Games still to play: 378
 
 ## Known gaps (and what we did about them)
 - Bowl/playoff games for 2001-2003 are not in any source (Elo warm-up only).

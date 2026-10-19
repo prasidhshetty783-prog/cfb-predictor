@@ -1,8 +1,8 @@
 {
- "updated_utc": "2026-10-15T00:13:05Z",
- "data_through_utc": "2026-10-11 02:30:00+00:00",
+ "updated_utc": "2026-10-19T19:31:51Z",
+ "data_through_utc": "2026-10-18 03:00:00+00:00",
  "season": 2026,
- "next_week": 7,
+ "next_week": 8,
  "model": "margin_ridge",
  "backtest": {
   "accuracy": 0.7569183299585382,
