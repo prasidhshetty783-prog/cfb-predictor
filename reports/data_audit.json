@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-19T19:31:01+00:00",
+ "generated_at": "2026-10-25T02:04:55+00:00",
  "hard_fail": [],
  "checks": {
   "duplicate_game_ids": 0,
@@ -468,12 +468,12 @@
   },
   {
    "season": 2026,
-   "games": 510,
-   "fbs_vs_fbs": 388,
+   "games": 542,
+   "fbs_vs_fbs": 420,
    "postseason": 0,
-   "home_win_rate": 0.7,
-   "market_line": 1.0,
-   "adv_stats_both": 1.0,
+   "home_win_rate": 0.694,
+   "market_line": 0.941,
+   "adv_stats_both": 0.941,
    "talent_cov": 0.993,
    "ret_all_cov": 1.0,
    "portal_net_cov": 1.0,
@@ -482,10 +482,10 @@
  ],
  "live_season": {
   "season": 2026,
-  "completed_games": 510,
-  "remaining_games": 378,
-  "last_completed_week": 7,
-  "last_completed_date": "2026-10-18 03:00:00+00:00"
+  "completed_games": 542,
+  "remaining_games": 346,
+  "last_completed_week": 8,
+  "last_completed_date": "2026-10-24 19:30:00+00:00"
  },
  "known_gaps": [
   "Bowl/playoff games for 2001-2003 are not in any source (Elo warm-up only).",

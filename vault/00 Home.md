@@ -8,10 +8,10 @@ team's chance to win the national title. First target: the 2026 season, whose ti
 played in January 2027. Full brief: [[Project Brief]].
 
 ## Status now
-- Updated 2026-10-19 19:31 UTC.
+- Updated 2026-10-25 02:05 UTC.
 - Model: CFB Predictor v0.1 (margin_ridge). Picks 75.7% of 2014-2025 games right; log loss 0.482; +0.012 behind Vegas. [[Model Card]]
-- 2026 title odds (games through Sat Oct 17, 2026): Ohio State 25.5%, Georgia 19.4%, Miami 12.7%. [[2026 Title Odds]]
-- Spotlight: Michigan title 0.03%; Michigan State title 0%. [[Upcoming Games]]
+- 2026 title odds (games through Sat Oct 24, 2026): Ohio State 24.7%, Georgia 19.1%, Miami 14.5%. [[2026 Title Odds]]
+- Spotlight: Michigan title 0.02%; Michigan State title 0%. [[Upcoming Games]]
 - Next steps: [[Roadmap]].
 
 ## Next up

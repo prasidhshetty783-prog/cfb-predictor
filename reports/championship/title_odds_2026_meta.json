@@ -1,11 +1,11 @@
 {
- "generated_at": "2026-10-19T19:31:48+00:00",
+ "generated_at": "2026-10-25T02:05:41+00:00",
  "season": 2026,
  "n_sims": 10000,
  "seed": 2026,
- "games_completed": 510,
- "games_simulated": 382,
- "data_through": "2026-10-18 03:00:00+00:00",
+ "games_completed": 542,
+ "games_simulated": 350,
+ "data_through": "2026-10-24 19:30:00+00:00",
  "rating_uncertainty_tau_points": 3.124503631267843,
  "game_noise_sigma_points": 15.410141033005713,
  "committee_weights": {
@@ -23,19 +23,19 @@
   "North Dakota State and Sacramento State (first FBS season) are ineligible for conference titles and the CFP.",
   "Team states are frozen at today's data; uncertainty enters through tau and game noise."
  ],
- "most_common_field_frequency": 0.005,
+ "most_common_field_frequency": 0.004,
  "most_common_field": [
   "Georgia",
   "Indiana",
   "Notre Dame",
   "Ole Miss",
   "Ohio State",
+  "Texas",
   "BYU",
   "Utah",
   "James Madison",
   "Alabama",
   "Miami",
-  "Tennessee",
   "Texas Tech"
  ]
 }
