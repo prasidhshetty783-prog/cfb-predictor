@@ -1,16 +1,16 @@
 {
  "season": 2026,
  "all": {
-  "games": 542,
-  "right": 436,
-  "sure_games": 261,
-  "sure_right": 240
+  "games": 566,
+  "right": 450,
+  "sure_games": 265,
+  "sure_right": 243
  },
  "logged": {
-  "games": 92,
-  "right": 64,
-  "sure_games": 27,
-  "sure_right": 18
+  "games": 116,
+  "right": 78,
+  "sure_games": 31,
+  "sure_right": 21
  },
  "recreated": {
   "games": 450,
@@ -18,5 +18,5 @@
   "sure_games": 234,
   "sure_right": 222
  },
- "next_week": 8
+ "next_week": 9
 }
